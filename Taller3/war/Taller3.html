@@ -1,0 +1,91 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+    <!--                                                               -->
+    <!-- Consider inlining CSS to reduce the number of requested files -->
+    <!--                                                               -->
+    
+        <!--                                           -->
+    <!-- Any title is fine                         -->
+    <!--                                           -->
+    <title>Sistemas de recomendación</title>
+    
+    <!--                                           -->
+    <!-- This script loads your compiled module.   -->
+    <!-- If you add any GWT meta tags, they must   -->
+    <!-- be added before this line.                -->
+    <!--                                           -->
+    <script type="text/javascript" language="javascript" src="taller3/taller3.nocache.js"></script>
+    
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen" />
+    <link rel="stylesheet" type="text/css" href="css/content-in-bootstrap-tabs.css" />
+    <link rel="stylesheet" href="Taller3.css" type="text/css"/>
+    <!-- content-in-bootstrap-tabs.css -->
+
+    
+  </head>
+
+  <!--                                           -->
+  <!-- The body can have arbitrary html, or      -->
+  <!-- you can leave the body empty if you want  -->
+  <!-- to create a completely dynamic UI.        -->
+  <!--                                           -->
+  <body>
+
+    <!-- OPTIONAL: include this if you want history support -->
+    <iframe src="javascript:''" id="__gwt_historyFrame" tabIndex='-1' style="position:absolute;width:0;height:0;border:0"></iframe>
+    
+    <!-- RECOMMENDED if your web app will not function without JavaScript enabled -->
+    <noscript>
+      <div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+        Your web browser must have JavaScript enabled
+        in order for this application to display correctly.
+      </div>
+    </noscript>
+    <hr />
+		<center><img src="./images/2010_Banner.png" ALT="Imagen tomada de: http://1channelch.blogspot.com/2012/10/watch-unlimited-movies-online-free.html" style="height: 150px; width: 800px;""/></center>
+        <center><div style="height: 30px; width: 800px; padding-top:5px; background-color: #254488; font-weight: bold; color: white;">Universidad de los Andes - Sistemas de recomendación - Taller 2 -  Deisy Diaz Pérez - Ricardo Calle Archila</div></center>
+    <hr />
+
+    <div class="container header">
+        <div class="row">
+            <div class="col-xs-12 col-sm-push-2 col-sm-8 ">
+				<div role="tabpanel">
+				
+				  <!-- Nav tabs -->
+				  <ul class="nav nav-tabs" role="tablist">
+				    <li role="presentation" class="active"><a href="#cf" aria-controls="cf" role="tab" data-toggle="tab">CF</a></li>
+				    <li role="presentation"><a href="#contentL" aria-controls="contentL" role="tab" data-toggle="tab">Basado en contenido</a></li>
+				    <li role="presentation"><a href="#contentL2" aria-controls="contentL2" role="tab" data-toggle="tab">Basado en contenido 2</a></li>
+				    <li role="presentation"><a href="#content" aria-controls="content" role="tab" data-toggle="tab">Basado en conocimiento</a></li>
+				    <li role="presentation"><a href="#hybrid" aria-controls="hybrid" role="tab" data-toggle="tab">Híbrido</a></li>
+				  </ul>
+				
+				  <!-- Tab panes -->
+				  <div class="tab-content">
+				    <div role="tabpanel" class="tab-pane active" id="cf"></div>
+				    <div role="tabpanel" class="tab-pane" id="contentL"></div>
+				    <div role="tabpanel" class="tab-pane" id="contentL2"></div>
+				    <div role="tabpanel" class="tab-pane" id="content"></div>
+				    <div role="tabpanel" class="tab-pane" id="hybrid"></div>
+				  </div>
+				
+				</div>
+			</div>
+		</div>
+	</div>
+
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/content-in-bootstrap-tabs.js"></script>
+
+  </body>
+</html>
