@@ -221,19 +221,20 @@ public class Controller implements ClickHandler, EntryPoint {
 				this.CFView.getListBoxRecommenderType(),
 				userId);
 			
-		CBParametersL cbData=new CBParametersL(this.cblView.getListboxDatasetSize(),
+		CBParametersL cbData=new CBParametersL(this.cblView.getTextboxWindowInitialDate().getText(),
+				this.cblView.getTextboxWindowFinalDate().getText(),
 				this.cblView.getTextboxWaitTime(),
 				this.cblView.getListboxMinTermFrequency(),
 				this.cblView.getListboxMinDocFrequency(),
 				this.cblView.getListBoxMinWordLen(),
-				"" + userId);
+				userId);
 
-		CBParametersL cbData2=new CBParametersL(this.cblView2.getListboxDatasetSize(),
+		CBParametersL cbData2=new CBParametersL("", this.cblView2.getListboxDatasetSize(),
 				this.cblView2.getTextboxWaitTime(),
 				this.cblView2.getListboxMinTermFrequency(),
 				this.cblView2.getListboxMinDocFrequency(),
 				this.cblView2.getListBoxMinWordLen(),
-				"" + userId);
+				userId);
 
 		AsyncCallback<List<ContentResult>> callback = new AsyncCallback<List<ContentResult>>() {
 			public void onFailure(Throwable caught) {
@@ -274,12 +275,13 @@ public class Controller implements ClickHandler, EntryPoint {
 		CBParametersL data=new CBParametersL();
 		
 		try {
-			data=new CBParametersL(this.cblView.getListboxDatasetSize(),
+			data=new CBParametersL(this.cblView.getTextboxWindowInitialDate().getText(),
+					this.cblView.getTextboxWindowFinalDate().getText(),
 					this.cblView.getTextboxWaitTime(),
 					this.cblView.getListboxMinTermFrequency(),
 					this.cblView.getListboxMinDocFrequency(),
 					this.cblView.getListBoxMinWordLen(),
-					this.cblView.getTextboxUser());
+					Integer.parseInt(this.cblView.getTextboxUser()));
 			this.cblView.getHtmlPrecisionResult().setHTML("<strong>Calculando...</strong>");
 			this.cblView.getHtmlRecallResult().setHTML("<strong>Calculando...</strong>");
 			this.cblView.getHtmlResultListResult().setHTML("<strong>Sin resultados</strong>");
@@ -306,12 +308,12 @@ public class Controller implements ClickHandler, EntryPoint {
 		CBParametersL data=new CBParametersL();
 		
 		try {
-			data=new CBParametersL(this.cblView2.getListboxDatasetSize(),
+			data=new CBParametersL("", this.cblView2.getListboxDatasetSize(),
 					this.cblView2.getTextboxWaitTime(),
 					this.cblView2.getListboxMinTermFrequency(),
 					this.cblView2.getListboxMinDocFrequency(),
 					this.cblView2.getListBoxMinWordLen(),
-					this.cblView2.getTextboxUser());
+					Integer.parseInt(this.cblView2.getTextboxUser()));
 			this.cblView2.getHtmlPrecisionResult().setHTML("<strong>Calculando...</strong>");
 			this.cblView2.getHtmlRecallResult().setHTML("<strong>Calculando...</strong>");
 			this.cblView2.getHtmlResultListResult().setHTML("<strong>Sin resultados</strong>");
@@ -343,15 +345,15 @@ public class Controller implements ClickHandler, EntryPoint {
 			text+=resultData[i] + " ";
 		}
 		
-		String[] userText=result.getUserDocs();
-		if(tam>userText.length) {
-			tam=userText.length;
-		}
-		
-		text="Mostrando " + tam + " reviews de " + userText.length + " para verificar<ul>";
-		for(int i=0;i<tam;i++) {
-			text=text+"<li>" + userText[i]+"</li>";
-		}
+//		String[] userText=result.getUserDocs();
+//		if(tam>userText.length) {
+//			tam=userText.length;
+//		}
+//		
+//		text="Mostrando " + tam + " reviews <ul>";
+//		for(int i=0;i<tam;i++) {
+//			text=text+"<li>" + userText[i]+"</li>";
+//		}
 		
 		tam=50;
 		String[] resultText=result.getOtherDocs();

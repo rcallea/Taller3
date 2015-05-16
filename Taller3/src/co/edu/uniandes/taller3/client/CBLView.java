@@ -2,6 +2,7 @@ package co.edu.uniandes.taller3.client;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlexTable;
@@ -25,7 +26,7 @@ public class CBLView {
 	 */
 	private VerticalPanel vp=new VerticalPanel();
 	private HTML htmlUiTitle=new HTML("<div style='width:776px'>" + constants.cblTitle() + "</div>");
-	private HTML htmlDatasetSize=new HTML(constants.cblDatasetSize());
+	private HTML htmlWindowInitialDate=new HTML(constants.cfWindowDate());
 	private HTML htmlWaitTime=new HTML(constants.cblWaitTime());
 	private HTML htmlMinTermFrequency=new HTML(constants.cblMinTermFrequency());
 	private HTML htmlMinDocFrequency=new HTML(constants.cblMinDocFrequency());
@@ -35,7 +36,8 @@ public class CBLView {
 	private HTML htmlRecall=new HTML(constants.cblRecall());
 	private HTML htmlResultList=new HTML(constants.cblResultList());
 	private HTML htmlError=new HTML();
-	private ListBox listboxDatasetSize=new ListBox();
+	private TextBox textboxWindowInitialDate=new TextBox();
+	private TextBox textboxWindowFinalDate=new TextBox();
 	private TextBox textboxWaitTime=new TextBox();
 	private ListBox listboxMinTermFrequency=new ListBox();
 	private ListBox listboxMinDocFrequency=new ListBox();
@@ -61,25 +63,30 @@ public class CBLView {
 		int row=0;
 		int column=0;
 		FlexTable ft=new FlexTable();
+		HorizontalPanel hp=new HorizontalPanel();
 		
-		this.setListboxDatasetSize(constants.cfDatasetSizeValues());
+		this.textboxWindowInitialDate.setText("2014/12/01");
+		this.textboxWindowFinalDate.setText("2014/12/31");
 		this.textboxWaitTime.setText("1");
 		this.setListboxMinTermFrequency(constants.cblMinTermFrequencyValues());
 		this.setListboxMinDocFrequency(constants.cblMinDocFrequencyValues());;
 		this.setListBoxMinWordLen(constants.cblMinWordLenValues());
 		this.textboxUser.setText("_7el1cOgnfkNfmZKi277bQ");;
 		
-		this.listboxDatasetSize.setWidth("100px");
+		this.textboxWindowInitialDate.setText("2014/12/01");
+		this.textboxWindowFinalDate.setText("2014/12/31");
 		this.textboxWaitTime.setWidth("100px");
 		this.listboxMinTermFrequency.setWidth("100px");
 		this.listboxMinDocFrequency.setWidth("100px");
 		this.listBoxMinWordLen.setWidth("100px");
 		this.textboxUser.setWidth("200px");
 		
+		hp.add(this.textboxWindowInitialDate);
+		hp.add(this.textboxWindowFinalDate);
 		
 		this.vp.add(this.htmlUiTitle);
-		ft.setWidget(row++,column, this.htmlDatasetSize);
-		ft.setWidget(row++,column, this.htmlWaitTime);
+		ft.setWidget(row++,column, this.htmlWindowInitialDate);
+		//ft.setWidget(row++,column, this.htmlWaitTime);
 		ft.setWidget(row++,column, this.htmlMinTermFrequency);
 		ft.setWidget(row++,column, this.htmlMinDocFrequency);
 		ft.setWidget(row++,column, this.htmlMinWordLen);
@@ -90,8 +97,8 @@ public class CBLView {
 		
 		column++;
 		row=0;
-		ft.setWidget(row++, column, this.listboxDatasetSize);
-		ft.setWidget(row++, column, this.textboxWaitTime);
+		ft.setWidget(row++, column, hp);
+		//ft.setWidget(row++, column, this.textboxWaitTime);
 		ft.setWidget(row++, column, this.listboxMinTermFrequency);
 		ft.setWidget(row++, column, this.listboxMinDocFrequency);
 		ft.setWidget(row++, column, this.listBoxMinWordLen);
@@ -132,9 +139,34 @@ public class CBLView {
 			message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cblWaitTime() + "\": " + this.constants.uiFieldErrorMessage() + "</li>";
 		}
 		
-		if(this.textboxUser.getText().length()<3) {
+		if(!this.getTextboxUser().matches("[0-9]+")) {
 			retorno=false;
-			message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cblUser() + "\": " + this.constants.uiFieldErrorMessage() + "</li>";
+			message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cfUser() + "\": " + this.constants.uiFieldErrorMessage() + "</li>";
+		} else {
+			try {
+				int value=Integer.parseInt(this.getTextboxUser());
+				if(value<Integer.MIN_VALUE || value>Integer.MAX_VALUE) {
+					retorno=false;
+					message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cfUser() + "\". " + this.constants.uiFieldOutOfBoundsMessage(); 
+				}
+			} catch (NumberFormatException nfe) {}
+		}
+		
+		DateTimeFormat format = DateTimeFormat.getFormat("yyyy/MM/dd");
+		try {
+			format.parse(this.getTextboxWindowInitialDate().getText());
+	 
+		} catch (IllegalArgumentException e) {
+			retorno=false;
+			message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cfWindowDate() + "\". " + this.constants.uiFieldOutOfBoundsMessage(); 
+		}
+
+		try {
+			format.parse(this.getTextboxWindowFinalDate().getText());
+	 
+		} catch (IllegalArgumentException e) {
+			retorno=false;
+			message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cfWindowDate() + "\". " + this.constants.uiFieldOutOfBoundsMessage(); 
 		}
 		
 		if(retorno==false) {
@@ -158,20 +190,6 @@ public class CBLView {
 	 */
 	public void setHtmlUiTitle(HTML htmlUiTitle) {
 		this.htmlUiTitle = htmlUiTitle;
-	}
-
-	/**
-	 * @return the htmlDatasetSize
-	 */
-	public HTML getHtmlDatasetSize() {
-		return htmlDatasetSize;
-	}
-
-	/**
-	 * @param htmlDatasetSize the htmlDatasetSize to set
-	 */
-	public void setHtmlDatasetSize(HTML htmlDatasetSize) {
-		this.htmlDatasetSize = htmlDatasetSize;
 	}
 
 	/**
@@ -272,20 +290,20 @@ public class CBLView {
 		this.htmlResultList = htmlResultList;
 	}
 
-	/**
-	 * @return the listboxDatasetSize
-	 */
-	public String getListboxDatasetSize() {
-		return this.listboxDatasetSize.getValue(this.listboxDatasetSize.getSelectedIndex());
+	public TextBox getTextboxWindowInitialDate() {
+		return textboxWindowInitialDate;
 	}
 
-	/**
-	 * @param listboxDatasetSize the listboxDatasetSize to set
-	 */
-	public void setListboxDatasetSize(String[] datasetSizeValues) {
-		for(int i=0;i<datasetSizeValues.length;i++) {
-			this.listboxDatasetSize.addItem(datasetSizeValues[i],datasetSizeValues[i]);
-		}
+	public void setTextboxWindowInitialDate(TextBox textboxWindowInitialDate) {
+		this.textboxWindowInitialDate = textboxWindowInitialDate;
+	}
+
+	public TextBox getTextboxWindowFinalDate() {
+		return textboxWindowFinalDate;
+	}
+
+	public void setTextboxWindowFinalDate(TextBox textboxWindowFinalDate) {
+		this.textboxWindowFinalDate = textboxWindowFinalDate;
 	}
 
 	/**

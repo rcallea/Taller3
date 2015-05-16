@@ -12,9 +12,13 @@ package co.edu.uniandes.taller3.server;
  * El resultado debe dejar los predict en otro vector por si lo preguntan
  * 
  */
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -37,6 +41,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
@@ -46,7 +51,10 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.Statement;
 
+import co.edu.uniandes.taller3.server.MySQLConstant;
 import co.edu.uniandes.taller3.shared.CBParametersL;
 import co.edu.uniandes.taller3.shared.CBResultL;
 
@@ -57,17 +65,15 @@ public class ContentBasedL {
 	private IndexWriterConfig config;
 	private CBResultL cblr=new CBResultL();
 	private ArrayList<Document> userDocs;
+	private static String FILEINDEXER="indexes";
 
-	public CBResultL initCB(CBParametersL data) throws IOException {
+	public static void main(String[] args) throws IOException {
 		System.out.println("Iniciando recomendador");
-		start(); //Inicia los analizadores
+		ContentBasedL cbl=new ContentBasedL();
+		cbl.start(); //Inicia los analizadores
 		
 		System.out.println("Obteniendo datos de los usuarios");
-		writerEntries(data.getUser(), (int)(data.getWaitTime()*60));
-		
-		System.out.println("Recomendando elementos parecidos");
-		findSilimar(data);
-		return(this.cblr);
+		cbl.writerEntries();
 	}
 	
 	public void start() throws IOException{
@@ -75,188 +81,209 @@ public class ContentBasedL {
 		config = new IndexWriterConfig(Version.LATEST, analyzer);
 		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
 		
-		indexDir = new RAMDirectory(); //don't write on disk
-		//indexDir = FSDirectory.open(new File("/Path/to/luceneIndex/")); //write on disk
+		//indexDir = new RAMDirectory(); //don't write on disk
+		indexDir = FSDirectory.open(new File(ContentBasedL.FILEINDEXER)); //write on disk
 	}
 	
-	public void writerEntries(String user, int secondsToWait) throws IOException{
+	public void writerEntries() throws IOException{
 		IndexWriter indexWriter = new IndexWriter(indexDir, config);
 		indexWriter.commit();
-		Hashtable<String, Integer> userBusiness=MongoDB.getUserBusiness(user);
-		MongoClient mongoClient = new MongoClient("localhost");
-		DB db = mongoClient.getDB("recommenderBusiness");
-		DBCollection coll = db.getCollection("review");
-		BasicDBObject allQuery = new BasicDBObject().append("stars", new BasicDBObject("$gt",3));
-		BasicDBObject fields = new BasicDBObject();
-		int posicionConsulta=1;
-		fields.put("_id", posicionConsulta++);
-		fields.put("user_id", posicionConsulta++);
-		fields.put("business_id", posicionConsulta++);
-		fields.put("text", posicionConsulta);
-		DBCursor cursor = coll.find(allQuery, fields);
+		
+		Connection conn = null;
+		Statement stmt = null;
+		try{
+			//STEP 2: Register JDBC driver
+			Class.forName(MySQLConstant.JDBC_DRIVER).newInstance();
 
-		try {
-			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.SECOND, secondsToWait);
-			Date now = new Date();
-			while(cursor.hasNext() && now.before(calendar.getTime())) {
-				try {
-					DBObject dbo=cursor.next();
-					String _id=dbo.get("_id").toString();
-					String user_id=dbo.get("user_id").toString();
-					String business_id=dbo.get("business_id").toString();
-					String text=dbo.get("text").toString();
-					
-					if(!user_id.equals(user) && userBusiness.get(business_id)==null) {
-						Document doc = createDocument(_id, user_id, business_id, text);
-						indexWriter.addDocument(doc);
-					}
-				} catch (NullPointerException e) {}
-				now = new Date();
+			//STEP 3: Open a connection
+			conn = (Connection) DriverManager.getConnection(MySQLConstant.DB_URL,MySQLConstant.USER,MySQLConstant.PASS);
+
+			//STEP 4: Execute a query
+			stmt = (Statement) conn.createStatement();
+			int moreRecords=1;
+			int limit=0;
+			int sizeData=999;
+			while(moreRecords>0) {
+				String sql = "SELECT movieId, title, genres, info FROM movie WHERE info IS NOT NULL LIMIT " + limit + "," + sizeData + ";";
+				System.out.println(sql);
+				ResultSet rs = stmt.executeQuery(sql);
+				//System.out.println("Cargando desde " + limit);
+				limit=limit+sizeData+1;
+				moreRecords=0;
+				while(rs.next()) {
+					Document doc = createDocument(rs.getString("movieId"), 
+							rs.getString("title"), rs.getString("genres"),
+							rs.getString("info"));
+					indexWriter.addDocument(doc);
+					moreRecords++;
+				}
+				rs.close();
+				indexWriter.commit();
+				indexWriter.forceMerge(100, true);
 			}
-			indexWriter.commit();
-			indexWriter.forceMerge(100, true);
-			indexWriter.close();
-		} finally {
-			cursor.close();
-		}
-		mongoClient.close();
+		//STEP 6: Clean-up environment
+			stmt.close();
+			conn.close();
+		}catch(SQLException se){
+			//Handle errors for JDBC
+			se.printStackTrace();
+		}catch(Exception e){
+			//Handle errors for Class.forName
+			e.printStackTrace();
+		}finally{
+			//finally block used to close resources
+			try{
+				if(stmt!=null)
+					stmt.close();
+			}catch(SQLException se2){
+			}// nothing we can do
+			try{
+				if(conn!=null)
+					conn.close();
+			}catch(SQLException se){
+				se.printStackTrace();
+			}//end finally try
+		}//end try
+		
+		indexWriter.close();
 	}
 
-	private Document createDocument(String id, String user, String business, String content) {
+	private Document createDocument(String movieId, String title, String genres, String info) {
 		FieldType type = new FieldType();
 		type.setIndexed(true);
 		type.setStored(true);
 		type.setStoreTermVectors(true); //TermVectors are needed for MoreLikeThis
 		
 		Document doc = new Document();
-		doc.add(new StringField("id", id, Store.YES));
-		doc.add(new Field("user_id", user, type));
-		doc.add(new Field("business_id", business, type));
-		doc.add(new Field("text", content, type));
+		doc.add(new StringField("movieId", movieId, Store.YES));
+		doc.add(new Field("title", title, type));
+		doc.add(new Field("genres", genres, type));
+		doc.add(new Field("info", info, type));
 		return doc;
 	}
 
-	private ArrayList<Document> getUserDocs(String user) {
+	private ArrayList<Document> getUserDocs(int user, String dateI, String dateF) {
 		ArrayList<Document> ret=new ArrayList<Document>();
-		MongoClient mongoClient = new MongoClient("localhost");
-		DB db = mongoClient.getDB("recommenderBusiness");
-		DBCollection coll = db.getCollection("review");
-		BasicDBObject allQuery = new BasicDBObject().append("stars", new BasicDBObject("$gt",3));
-		allQuery.append("user_id", user);
-		BasicDBObject fields = new BasicDBObject();
-		int posicionConsulta=1;
-		fields.put("_id", posicionConsulta++);
-		fields.put("user_id", posicionConsulta++);
-		fields.put("business_id", posicionConsulta++);
-		fields.put("text", posicionConsulta);
-		DBCursor cursor = coll.find(allQuery, fields);
+		Connection conn = null;
+		Statement stmt = null;
+		try{
+			//STEP 2: Register JDBC driver
+			Class.forName(MySQLConstant.JDBC_DRIVER).newInstance();
 
-		try {
-			while(cursor.hasNext()) {
-				try {
-					DBObject dbo=cursor.next();
-					String _id=dbo.get("_id").toString();
-					String user_id=dbo.get("user_id").toString();
-					String business_id=dbo.get("business_id").toString();
-					String text=dbo.get("text").toString();
-					Document doc = createDocument(_id, user_id, business_id, text);
-					ret.add(doc);
-				} catch (NullPointerException e) {}
+			//STEP 3: Open a connection
+			conn = (Connection) DriverManager.getConnection(MySQLConstant.DB_URL,MySQLConstant.USER,MySQLConstant.PASS);
+
+			//STEP 4: Execute a query
+			stmt = (Statement) conn.createStatement();
+			int moreRecords=1;
+			int limit=0;
+			int sizeData=9999;
+			while(moreRecords>0) {
+				String sql = "SELECT movie.movieId, title, genres, info FROM movie WHERE movieId IN (SELECT DISTINCT rating.movieId FROM rating WHERE userId=" + user + " AND timestamp>=UNIX_TIMESTAMP('" + dateI + " 00:00:00') AND timestamp<=UNIX_TIMESTAMP('" + dateF + " 23:59:00')) AND info IS NOT NULL LIMIT " + limit + "," + sizeData + ";";
+				System.out.println(sql);
+				ResultSet rs = stmt.executeQuery(sql);
+				//System.out.println("Cargando desde " + limit);
+				limit=limit+sizeData+1;
+				moreRecords=0;
+				while(rs.next()) {
+					ret.add(this.createDocument(rs.getString("movieId"), rs.getString("title"),
+							rs.getString("genres"), rs.getString("info")));
+					moreRecords++;
+				}
+				rs.close();
 			}
-		} finally {
-			cursor.close();
-		}
-		mongoClient.close();
+		//STEP 6: Clean-up environment
+			stmt.close();
+			conn.close();
+		}catch(SQLException se){
+			//Handle errors for JDBC
+			se.printStackTrace();
+		}catch(Exception e){
+			//Handle errors for Class.forName
+			e.printStackTrace();
+		}finally{
+			//finally block used to close resources
+			try{
+				if(stmt!=null)
+					stmt.close();
+			}catch(SQLException se2){
+			}// nothing we can do
+			try{
+				if(conn!=null)
+					conn.close();
+			}catch(SQLException se){
+				se.printStackTrace();
+			}//end finally try
+		}//end try
 		return(ret);
 	}
 	
-	private void findSilimar(CBParametersL searchForSimilar) throws IOException {
+	public void findSilimar(CBParametersL searchForSimilar) throws IOException {
+		this.start();
 		float precision=0;
 		float recall=0;
 		int found=0;
-		Hashtable <String,Integer> businessReferenced=new Hashtable <String,Integer>();
+		Hashtable <String,Integer> moviesRecommended=new Hashtable <String,Integer>();
+		ArrayList<Document> result=new ArrayList<Document>();
+		ArrayList<String> resultText=new ArrayList<String>();
 		IndexReader reader = DirectoryReader.open(indexDir);
 		IndexSearcher indexSearcher = new IndexSearcher(reader);
-		ArrayList<Document> userDocs=this.getUserDocs(searchForSimilar.getUser());
-		ArrayList<Document> userVerification=new ArrayList<Document>();
-		ArrayList<Document> result=new ArrayList<Document>();
-		ArrayList<String> queryText=new ArrayList<String>();
-		ArrayList<String> resultText=new ArrayList<String>();
+		System.out.println("Obteniendo datos del usuario");
+		this.userDocs=this.getUserDocs(searchForSimilar.getUser(), searchForSimilar.getDateI(), searchForSimilar.getDateF());
+		for(int i=0;i<this.userDocs.size();i++) {
+			moviesRecommended.put(this.userDocs.get(i).get("movieId"),1);
+		}
 		
+		System.out.println("Creando recomendador");
 		MoreLikeThis mlt = new MoreLikeThis(reader);
 	    mlt.setMinTermFreq(searchForSimilar.getMinTermFrequency());
 	    mlt.setMinDocFreq(searchForSimilar.getMinDocFrequency());
 	    mlt.setMinWordLen(searchForSimilar.getMinWordLen());
-	    mlt.setFieldNames(new String[]{"_id", "user_id", "business_id", "text"});
+	    mlt.setFieldNames(new String[]{"movieId", "title", "genres", "info"});
 	    mlt.setAnalyzer(analyzer);
 	    
-	    double docsSelected=1;
-	    if(searchForSimilar.getDatasetSize().startsWith("6")) {
-	    	docsSelected = userDocs.size() * 0.6;
-	    } else if(searchForSimilar.getDatasetSize().startsWith("7")) {
-	    	docsSelected = userDocs.size() * 0.7;
-	    } else {
-	    	docsSelected = userDocs.size() * 0.8;
-	    }
-	    
-	    int posicion=0;
-	    while((double)posicion<docsSelected) {
-	    	Document doc=userDocs.get(posicion);
-		    Query query = mlt.like("text",new StringReader(doc.get("text")));
+	    for(int i=0;i<this.userDocs.size();i++) {
+	    	Document doc=this.userDocs.get(i);
+		    Query query = mlt.like("info",new StringReader(doc.get("info")));
 		    TopDocs topDocs = indexSearcher.search(query,20);
-		    queryText.add(doc.get("business_id") + ": " + doc.get("text"));
+		    //queryText.add(doc.get("business_id") + ": " + doc.get("text"));
 		    for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 		        Document aSimilar = indexSearcher.doc( scoreDoc.doc );
-		        if(businessReferenced.get(aSimilar.get("business_id"))==null) {
-		        	businessReferenced.put(aSimilar.get("business_id"),1);
+		        if(moviesRecommended.get(aSimilar.get("movieId"))==null) {
+		        	moviesRecommended.put(aSimilar.get("movieId"),1);
+			        result.add(aSimilar);
+			        resultText.add(aSimilar.get("movieId") + ": " + aSimilar.get("info"));
 		        }
-		        result.add(aSimilar);
-		        resultText.add(aSimilar.get("business_id") + ": " + aSimilar.get("text"));
 		    }
-	    	posicion++;
 	    }
-	    while(posicion<userDocs.size()) {
-	    	userVerification.add(userDocs.get(posicion));
-	    	posicion++;
-	    }
-	    
-	    String[] totalResult=new String[result.size()];
-	    for(int i=0;i<result.size();i++) {
-	    	totalResult[i]=result.get(i).get("business_id");
-	    }
-	    this.cblr.setData(totalResult);
-		
+
 		int maxDataSize=50;
-		String[] retListSearch;
-		if(totalResult.length<=maxDataSize) {
-			maxDataSize=totalResult.length;
-		}
-		String[] retListData=new String[maxDataSize];
-		retListSearch=new String[maxDataSize];
-		
-		for(int i=0;i<maxDataSize;i++) {
-			retListSearch[i]=totalResult[i];
-		}
-		
-		ArrayList<String[]> retListAllData=MongoDB.getBusinessInfo(retListSearch);
-		for(int i=0;i<retListAllData.size();i++) {
-			String[] businessData=retListAllData.get(i);
-			retListData[i]=businessData[7] + ": " +businessData[1] + " (" + businessData[4] + " - " + businessData[5] + ")"; 
+		if(result.size()<=maxDataSize) {
+			maxDataSize=result.size();
 		}
 
+		String[] totalResult=new String[maxDataSize];
+		String[] retListData=new String[maxDataSize];
+	    for(int i=0;i<maxDataSize;i++) {
+	    	totalResult[i]=result.get(i).get("movieId");
+	    	retListData[i]=resultText.get(i);
+	    }
+	    this.cblr.setData(totalResult);
+		this.cblr.setDataInfo(retListData);
+
+		ArrayList<String> userVerification=this.getNextMovies(searchForSimilar.getUser(), searchForSimilar.getDateF());
 		System.out.println("Calculando precision y recall");
 		for(int i=0; i<userVerification.size();i++) {
-			if(businessReferenced.get(userVerification.get(i).get("business_id"))!=null) {
+			if(moviesRecommended.get(userVerification.get(i))!=null) {
 				found++;
 			}
 		}
+		
 		precision=((float)found)/((float)(found + result.size()));
-		recall=((float)found)/((float)(found + userDocs.size()));
+		recall=((float)found)/((float)(found + this.userDocs.size()));
 		this.cblr.setDataInfo(retListData);
 		this.cblr.setPrecision(precision);
 		this.cblr.setRecall(recall);
-		this.cblr.setUserDocs(this.arrayListToStringArray(queryText));
 		this.cblr.setOtherDocs(this.arrayListToStringArray(resultText));
 		System.out.println("Fin CBL");
 	}
@@ -267,5 +294,67 @@ public class ContentBasedL {
 			ret[i]=al.get(i);
 		}
 		return(ret);
+	}
+
+	public ArrayList<String> getNextMovies(int user, String dateF) {
+		ArrayList<String> ret=new ArrayList<String>();
+		
+		Connection conn = null;
+		Statement stmt = null;
+		try{
+			//STEP 2: Register JDBC driver
+			Class.forName(MySQLConstant.JDBC_DRIVER).newInstance();
+
+			//STEP 3: Open a connection
+			conn = (Connection) DriverManager.getConnection(MySQLConstant.DB_URL,MySQLConstant.USER,MySQLConstant.PASS);
+
+			//STEP 4: Execute a query
+			stmt = (Statement) conn.createStatement();
+			String sql = "SELECT userId, movieId, rating FROM rating WHERE timestamp>=UNIX_TIMESTAMP('" + dateF + " 23:59:00') AND userId= " + user + ";";
+			System.out.println(sql);
+			ResultSet rs = stmt.executeQuery(sql);
+			while(rs.next()) {
+				ret.add(rs.getString("movieId"));
+			}
+			rs.close();
+		//STEP 6: Clean-up environment
+			stmt.close();
+			conn.close();
+		}catch(SQLException se){
+			//Handle errors for JDBC
+			se.printStackTrace();
+		}catch(Exception e){
+			//Handle errors for Class.forName
+			e.printStackTrace();
+		}finally{
+			//finally block used to close resources
+			try{
+				if(stmt!=null)
+					stmt.close();
+			}catch(SQLException se2){
+			}// nothing we can do
+			try{
+				if(conn!=null)
+					conn.close();
+			}catch(SQLException se){
+				se.printStackTrace();
+			}//end finally try
+		}//end try
+		
+		return(ret);
+	}
+
+	/**
+	 * @return the cblr
+	 */
+	public CBResultL getCblr() {
+		return cblr;
+	}
+
+	/**
+	 * @param cblr the cblr to set
+	 */
+	public void setCblr(CBResultL cblr) {
+		this.cblr = cblr;
 	}
 }

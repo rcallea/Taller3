@@ -8,12 +8,37 @@ public class CBParametersL implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 868367783437745573L;
-	private String datasetSize="";
+	private String dateI="2014/01/01";
+	private String dateF="2014/12/31";
 	private float waitTime=0;
 	private int minTermFrequency=0;
 	private int minDocFrequency=0;
 	private int minWordLen=0;
-	private String user="";
+	private int user=0;
+	/**
+	 * @return the dateI
+	 */
+	public String getDateI() {
+		return dateI;
+	}
+	/**
+	 * @param dateI the dateI to set
+	 */
+	public void setDateI(String dateI) {
+		this.dateI = dateI;
+	}
+	/**
+	 * @return the dateF
+	 */
+	public String getDateF() {
+		return dateF;
+	}
+	/**
+	 * @param dateF the dateF to set
+	 */
+	public void setDateF(String dateF) {
+		this.dateF = dateF;
+	}
 	/**
 	 * 
 	 */
@@ -28,27 +53,16 @@ public class CBParametersL implements Serializable {
 	 * @param minWordLen
 	 * @param user
 	 */
-	public CBParametersL(String datasetSize, float waitTime,
-			int minTermFrequency, int minDocFrequency, int minWordLen, String user) {
+	public CBParametersL(String dateI, String dateF, float waitTime,
+			int minTermFrequency, int minDocFrequency, int minWordLen, int user) {
 		super();
-		this.datasetSize = datasetSize;
+		this.dateI = dateI;
+		this.dateF = dateF;
 		this.waitTime = waitTime;
 		this.minTermFrequency = minTermFrequency;
 		this.minDocFrequency = minDocFrequency;
 		this.minWordLen = minWordLen;
 		this.user = user;
-	}
-	/**
-	 * @return the datasetSize
-	 */
-	public String getDatasetSize() {
-		return datasetSize;
-	}
-	/**
-	 * @param datasetSize the datasetSize to set
-	 */
-	public void setDatasetSize(String datasetSize) {
-		this.datasetSize = datasetSize;
 	}
 	/**
 	 * @return the waitTime
@@ -101,13 +115,13 @@ public class CBParametersL implements Serializable {
 	/**
 	 * @return the user
 	 */
-	public String getUser() {
+	public int getUser() {
 		return user;
 	}
 	/**
 	 * @param user the user to set
 	 */
-	public void setUser(String user) {
+	public void setUser(int user) {
 		this.user = user;
 	}
 	

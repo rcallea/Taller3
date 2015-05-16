@@ -64,7 +64,7 @@ public class ContentBasedL2 {
 		start(); //Inicia los analizadores
 		
 		System.out.println("Obteniendo datos de los usuarios");
-		writerEntries(data.getUser(), (int)(data.getWaitTime()*60));
+		writerEntries(""+data.getUser(), (int)(data.getWaitTime()*60));
 		
 		System.out.println("Recomendando elementos parecidos");
 		findSilimar(data);
@@ -200,7 +200,7 @@ public class ContentBasedL2 {
 		Hashtable <String,Integer> businessReferenced=new Hashtable <String,Integer>();
 		IndexReader reader = DirectoryReader.open(indexDir);
 		IndexSearcher indexSearcher = new IndexSearcher(reader);
-		ArrayList<Document> userDocs=this.getUserDocs(searchForSimilar.getUser());
+		ArrayList<Document> userDocs=this.getUserDocs(""+searchForSimilar.getUser());
 		ArrayList<Document> userVerification=new ArrayList<Document>();
 		ArrayList<Document> result=new ArrayList<Document>();
 		ArrayList<String> queryText=new ArrayList<String>();
@@ -214,13 +214,6 @@ public class ContentBasedL2 {
 	    mlt.setAnalyzer(analyzer);
 	    
 	    double docsSelected=1;
-	    if(searchForSimilar.getDatasetSize().startsWith("6")) {
-	    	docsSelected = userDocs.size() * 0.6;
-	    } else if(searchForSimilar.getDatasetSize().startsWith("7")) {
-	    	docsSelected = userDocs.size() * 0.7;
-	    } else {
-	    	docsSelected = userDocs.size() * 0.8;
-	    }
 	    
 	    int posicion=0;
 	    while((double)posicion<docsSelected) {
@@ -357,20 +350,4 @@ public class ContentBasedL2 {
 		//System.out.println("--------------------\n" + ret);
 		return(ret);
 	}
-
-	public static void main(String[] args) throws Exception{
-		CBParametersL data=new CBParametersL("60 %", (float)0.2, 0, 0, 0, "_7el1cOgnfkNfmZKi277bQ");
-		CBResultL r=new ContentBasedL2().initCB(data);
-		String[] r1=r.getData();
-		String[] r2=r.getDataInfo();
-		
-//		for(int i=0;i<r1.length;i++)
-//			System.out.println(r1[i]);
-
-		System.out.println("Yes--------------------");
-		System.out.println("--------------------");
-		for(int i=0;i<r2.length;i++)
-			System.out.println(r2[i]);
-	}
-	
 }

@@ -43,8 +43,11 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 	@Override
 	public CBResultL initCBL(CBParametersL data) {
 		try {
-			return(new ContentBasedL().initCB(data));
-		} catch (IOException e) {}
+			ContentBasedL cbl=new ContentBasedL();
+			cbl.findSilimar(data);
+			return(cbl.getCblr());
+			
+		} catch (IOException e) {e.printStackTrace();}
 		return(new CBResultL());
 	}
 
@@ -169,7 +172,9 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 		System.out.println("Resultados de colaborativo: " + cfResult.getData().length);
 		CBResultL cbResult=new CBResultL();
 		try {
-			cbResult = new ContentBasedL().initCB(cbData);
+			ContentBasedL cbl=new ContentBasedL();
+			cbl.findSilimar(cbData);
+			cbResult=cbl.getCblr();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
