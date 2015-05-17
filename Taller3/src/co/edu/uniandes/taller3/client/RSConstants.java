@@ -9,7 +9,7 @@ public interface RSConstants extends Constants{
 	 * @return
 	 */
 	
-	@DefaultStringValue("<h3>Recomendador Basado en contenido con More Like This de Lucene</h3>")
+	@DefaultStringValue("<h3>Recomendador Basado en contenido con Lucene</h3>")
 	String cblTitle();
 
 	@DefaultStringValue("Tama\u00F1o del dataset de pruebas")

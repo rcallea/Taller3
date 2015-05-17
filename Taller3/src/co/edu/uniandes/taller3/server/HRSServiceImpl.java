@@ -51,14 +51,6 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 		return(new CBResultL());
 	}
 
-	@Override
-	public CBResultL initCBL2(CBParametersL data) {
-		try {
-			return(new ContentBasedL2().initCB(data));
-		} catch (IOException e) {}
-		return(new CBResultL());
-	}
-
 	public List<ContentResult> getContentBusiness(ContentParameters data, String[] listCF)
 	{
 		System.out.println("Iniciando recomendador conocimiento");
@@ -133,10 +125,9 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 		return ConnectionDB.getInformationBusiness(businessId);
 	}
 	
-	public String[] CFCBMix(CFResult cfResult, CBResultL cbResult, CBResultL cbResult2) {
+	public String[] CFCBMix(CFResult cfResult, CBResultL cbResult) {
 		String[] ret={};
 		String[] cb=cbResult.getData();
-		String[] cb2=cbResult2.getData();
 		String[] cf=cfResult.getData();
 		ArrayList<String> al=new ArrayList<String>();
 
@@ -144,16 +135,10 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 		if(length<cb.length) {
 			length=cb.length;
 		}
-		if(length<cb2.length) {
-			length=cb2.length;
-		}
 		
 		for(int i=0;i<length;i++) {
 			if(i<cb.length) {
 				al.add(cb[i]);
-			}
-			if(i<cb2.length) {
-				al.add(cb2[i]);
 			}
 			if(i<cf.length) {
 				al.add(cf[i]);
@@ -166,7 +151,7 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 		return ret;
 	}
 
-	public List<ContentResult> getHybridBusiness(CFParameters cfData, CBParametersL cbData, CBParametersL cbData2, ContentParameters contentData) {
+	public List<ContentResult> getHybridBusiness(CFParameters cfData, CBParametersL cbData, ContentParameters contentData) {
 		String[] listCF={""};
 		CFResult cfResult = new CollaborativeFiltering().initCF(cfData);
 		System.out.println("Resultados de colaborativo: " + cfResult.getData().length);
@@ -180,18 +165,8 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 			e1.printStackTrace();
 			cbResult.setData(listCF);
 		}
-		System.out.println("Resultados de contenido 1: " + cbResult.getData().length);
-		CBResultL cbResult2=new CBResultL();;
-		try {
-			cbResult2 = new ContentBasedL2().initCB(cbData);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			cbResult2.setData(listCF);
-		}
-		System.out.println("Resultados de contenido 2: " + cbResult2.getData().length);
 
-		listCF=this.CFCBMix(cfResult, cbResult, cbResult2);
+		listCF=this.CFCBMix(cfResult, cbResult);
 		System.out.println(listCF.length);
 		return getContentBusiness(contentData, listCF);		
 	}

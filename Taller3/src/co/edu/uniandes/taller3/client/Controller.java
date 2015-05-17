@@ -32,7 +32,6 @@ public class Controller implements ClickHandler, EntryPoint {
 	
 	private CFView CFView;
 	private CBLView cblView;
-	private CBLView2 cblView2;
 	private ContentView ContentView;
 	private HybridView HybridView;
 	private RSConstants constants = GWT.create(RSConstants.class);
@@ -49,10 +48,6 @@ public class Controller implements ClickHandler, EntryPoint {
 		this.cblView=new CBLView();
 		this.cblView.setController(this);
 		this.cblView.generateUI();
-
-		this.cblView2=new CBLView2();
-		this.cblView2.setController(this);
-		this.cblView2.generateUI();
 
 		this.ContentView=new ContentView();
 		this.ContentView.setController(this);
@@ -77,10 +72,6 @@ public class Controller implements ClickHandler, EntryPoint {
 			else if(sender.equals(this.constants.cblSend())) {
 				if(this.cblView.validate()) {
 					this.sendCBLData();
-				}
-			}else if(sender.equals(this.constants.cblSend2())) {
-				if(this.cblView2.validate()) {
-					this.sendCBLData2();
 				}
 			}else if(sender.equals(this.constants.contentSend())) {
 				if(this.ContentView.validate()) {
@@ -136,7 +127,7 @@ public class Controller implements ClickHandler, EntryPoint {
 		this.CFView.getHtmlRecallResult().setText("" + result.getRecall());
 		String text="Mostrando " + result.getDataInfo().length + " recomendaciones.<br/>";
 		String[] resultData=result.getDataInfo();
-		text=text + "<table><hr><td>Película</td><td>Géneros</td></hr>";
+		text=text + "<table><hr><td>Pel\u00EDcula</td><td>G\u00E9neros</td></hr>";
 		for(int i=0;i<resultData.length;i++) {
 			String oneData=resultData[i].replaceFirst("-----", "</td><td>");
 			text+="<tr><td>" + oneData + "</td></tr>";
@@ -229,13 +220,6 @@ public class Controller implements ClickHandler, EntryPoint {
 				this.cblView.getListBoxMinWordLen(),
 				userId);
 
-		CBParametersL cbData2=new CBParametersL("", this.cblView2.getListboxDatasetSize(),
-				this.cblView2.getTextboxWaitTime(),
-				this.cblView2.getListboxMinTermFrequency(),
-				this.cblView2.getListboxMinDocFrequency(),
-				this.cblView2.getListBoxMinWordLen(),
-				userId);
-
 		AsyncCallback<List<ContentResult>> callback = new AsyncCallback<List<ContentResult>>() {
 			public void onFailure(Throwable caught) {
 		        // TODO: Do something with errors.
@@ -266,7 +250,7 @@ public class Controller implements ClickHandler, EntryPoint {
 				}
 			}
 		};
-		hrsSvc.getHybridBusiness(cfData, cbData, cbData2, contentData, callback);
+		hrsSvc.getHybridBusiness(cfData, cbData, contentData, callback);
 
 	}
 	
@@ -303,57 +287,11 @@ public class Controller implements ClickHandler, EntryPoint {
 		hrsSvc.initCBL(data, callback);
 	}
 
-	private void sendCBLData2() {
-		if(hrsSvc==null) hrsSvc = GWT.create(HRSService.class);
-		CBParametersL data=new CBParametersL();
-		
-		try {
-			data=new CBParametersL("", this.cblView2.getListboxDatasetSize(),
-					this.cblView2.getTextboxWaitTime(),
-					this.cblView2.getListboxMinTermFrequency(),
-					this.cblView2.getListboxMinDocFrequency(),
-					this.cblView2.getListBoxMinWordLen(),
-					Integer.parseInt(this.cblView2.getTextboxUser()));
-			this.cblView2.getHtmlPrecisionResult().setHTML("<strong>Calculando...</strong>");
-			this.cblView2.getHtmlRecallResult().setHTML("<strong>Calculando...</strong>");
-			this.cblView2.getHtmlResultListResult().setHTML("<strong>Sin resultados</strong>");
-		} catch (NumberFormatException nfe) {}
-		
-		AsyncCallback<CBResultL> callback = new AsyncCallback<CBResultL>() {
-			public void onFailure(Throwable caught) {
-				//Aquí poner el llamado en caso de que salga mal
-			}
-
-			@Override
-			public void onSuccess(CBResultL result) {
-				//Aquí poner el llamado en caso de que salga bien
-				updateCBLResult2(result);
-			}
-		};
-
-		// Make the call to the stock price service.
-		hrsSvc.initCBL2(data, callback);
-	}
-
 	private void updateCBLResult(CBResultL result) {
 		this.cblView.getHtmlPrecisionResult().setText("" + result.getPrecision());
 		this.cblView.getHtmlRecallResult().setText("" + result.getRecall());
 		String text="";
 		int tam=10;
-		String[] resultData=result.getData();
-		for(int i=2;i<resultData.length;i++) {
-			text+=resultData[i] + " ";
-		}
-		
-//		String[] userText=result.getUserDocs();
-//		if(tam>userText.length) {
-//			tam=userText.length;
-//		}
-//		
-//		text="Mostrando " + tam + " reviews <ul>";
-//		for(int i=0;i<tam;i++) {
-//			text=text+"<li>" + userText[i]+"</li>";
-//		}
 		
 		tam=50;
 		String[] resultText=result.getOtherDocs();
@@ -362,48 +300,14 @@ public class Controller implements ClickHandler, EntryPoint {
 			tam=resultText.length;
 		}
 		
-		text=text + "</ul><hr/>Mostrando " + tam + " reviews de " + resultText.length + " recomendados<ul>";
+		text=text + "</ul><hr/>Mostrando " + tam + " películas recomendadas<ul>";
+		text=text + "<table><hr><td>Pel\u00EDcula</td><td>Resumen</td></hr>";
 		for(int i=0;i<tam;i++) {
 			text=text + "<li><strong>" + resultText1[i] + "</strong>: " + resultText[i]+"</li>";
 		}
+		text=text + "</table>";
 		
 		text = text + "</ul>";
 		this.cblView.getHtmlResultListResult().setHTML(text);
-	}
-
-	private void updateCBLResult2(CBResultL result) {
-		this.cblView2.getHtmlPrecisionResult().setText("" + result.getPrecision());
-		this.cblView2.getHtmlRecallResult().setText("" + result.getRecall());
-		String text="";
-		int tam=10;
-		String[] resultData=result.getData();
-		for(int i=2;i<resultData.length;i++) {
-			text+=resultData[i] + " ";
-		}
-		
-		String[] userText=result.getUserDocs();
-		if(tam>userText.length) {
-			tam=userText.length;
-		}
-		
-		text="Mostrando " + tam + " reviews de " + userText.length + " para verificar<ul>";
-		for(int i=0;i<tam;i++) {
-			text=text+"<li>" + userText[i]+"</li>";
-		}
-		
-		tam=50;
-		String[] resultText=result.getOtherDocs();
-		String[] resultText1=result.getDataInfo();
-		if(tam>resultText.length) {
-			tam=resultText.length;
-		}
-		
-		text=text + "</ul><hr/>Mostrando " + tam + " reviews de " + resultText.length + " recomendados<ul>";
-		for(int i=0;i<tam;i++) {
-			text=text + "<li><strong>" + resultText1[i] + "</strong>: " + resultText[i]+"</li>";
-		}
-		
-		text = text + "</ul>";
-		this.cblView2.getHtmlResultListResult().setHTML(text);
 	}
 }

@@ -20,10 +20,9 @@ public interface HRSService extends RemoteService{
 
 	//String[] sendUser(CFParameters data);
 	List<ContentResult> getContentBusiness(ContentParameters data, String[] listCF);
-	List<ContentResult> getHybridBusiness(CFParameters cfData, CBParametersL cbData, CBParametersL cbData2, ContentParameters contentData);
+	List<ContentResult> getHybridBusiness(CFParameters cfData, CBParametersL cbData, ContentParameters contentData);
 	String[] getInformationBusiness(String businessId);
 
 	CFResult initCF(CFParameters data);
 	CBResultL initCBL(CBParametersL data);
-	CBResultL initCBL2(CBParametersL data);
 }

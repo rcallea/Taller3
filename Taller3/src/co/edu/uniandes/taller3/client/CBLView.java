@@ -71,7 +71,7 @@ public class CBLView {
 		this.setListboxMinTermFrequency(constants.cblMinTermFrequencyValues());
 		this.setListboxMinDocFrequency(constants.cblMinDocFrequencyValues());;
 		this.setListBoxMinWordLen(constants.cblMinWordLenValues());
-		this.textboxUser.setText("_7el1cOgnfkNfmZKi277bQ");;
+		this.textboxUser.setText("66635");;
 		
 		this.textboxWindowInitialDate.setText("2014/12/01");
 		this.textboxWindowFinalDate.setText("2014/12/31");

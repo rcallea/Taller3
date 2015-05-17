@@ -256,7 +256,7 @@ public class ContentBasedL {
 		        }
 		    }
 	    }
-
+ 
 		int maxDataSize=50;
 		if(result.size()<=maxDataSize) {
 			maxDataSize=result.size();
@@ -266,7 +266,7 @@ public class ContentBasedL {
 		String[] retListData=new String[maxDataSize];
 	    for(int i=0;i<maxDataSize;i++) {
 	    	totalResult[i]=result.get(i).get("movieId");
-	    	retListData[i]=resultText.get(i);
+	    	retListData[i]=result.get(i).get("title") + "(" + result.get(i).get("genres") + ")";
 	    }
 	    this.cblr.setData(totalResult);
 		this.cblr.setDataInfo(retListData);
