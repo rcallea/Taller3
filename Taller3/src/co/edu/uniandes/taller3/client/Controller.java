@@ -300,7 +300,7 @@ public class Controller implements ClickHandler, EntryPoint {
 			tam=resultText.length;
 		}
 		
-		text=text + "</ul><hr/>Mostrando " + tam + " películas recomendadas<ul>";
+		text=text + "</ul><hr/>Mostrando " + tam + " pel\u00EDculas recomendadas<ul>";
 		text=text + "<table><hr><td>Pel\u00EDcula</td><td>Resumen</td></hr>";
 		for(int i=0;i<tam;i++) {
 			text=text + "<li><strong>" + resultText1[i] + "</strong>: " + resultText[i]+"</li>";

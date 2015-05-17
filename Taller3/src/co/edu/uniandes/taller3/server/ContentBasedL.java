@@ -244,7 +244,8 @@ public class ContentBasedL {
 	    
 	    for(int i=0;i<this.userDocs.size();i++) {
 	    	Document doc=this.userDocs.get(i);
-		    Query query = mlt.like("info",new StringReader(doc.get("info")));
+	    	String tags=this.getTags(searchForSimilar.getUser(),doc.get("movieId"));
+		    Query query = mlt.like("info",new StringReader(doc.get("info") + " " + tags + " " + tags));
 		    TopDocs topDocs = indexSearcher.search(query,20);
 		    //queryText.add(doc.get("business_id") + ": " + doc.get("text"));
 		    for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
@@ -342,6 +343,54 @@ public class ContentBasedL {
 		}//end try
 		
 		return(ret);
+	}
+	
+	private String getTags(int userId,String movieId) {
+		String ret="";
+		
+		Connection conn = null;
+		Statement stmt = null;
+		try{
+			//STEP 2: Register JDBC driver
+			Class.forName(MySQLConstant.JDBC_DRIVER).newInstance();
+
+			//STEP 3: Open a connection
+			conn = (Connection) DriverManager.getConnection(MySQLConstant.DB_URL,MySQLConstant.USER,MySQLConstant.PASS);
+
+			//STEP 4: Execute a query
+			stmt = (Statement) conn.createStatement();
+			String sql = "SELECT tag FROM tag WHERE userId=" + userId + "  AND movieId= " + movieId + ";";
+			System.out.println(sql);
+			ResultSet rs = stmt.executeQuery(sql);
+			while(rs.next()) {
+				ret = ret + " " + rs.getString("tag");
+			}
+			rs.close();
+		//STEP 6: Clean-up environment
+			stmt.close();
+			conn.close();
+		}catch(SQLException se){
+			//Handle errors for JDBC
+			se.printStackTrace();
+		}catch(Exception e){
+			//Handle errors for Class.forName
+			e.printStackTrace();
+		}finally{
+			//finally block used to close resources
+			try{
+				if(stmt!=null)
+					stmt.close();
+			}catch(SQLException se2){
+			}// nothing we can do
+			try{
+				if(conn!=null)
+					conn.close();
+			}catch(SQLException se){
+				se.printStackTrace();
+			}//end finally try
+		}//end try
+		
+		return(ret.trim());
 	}
 
 	/**
