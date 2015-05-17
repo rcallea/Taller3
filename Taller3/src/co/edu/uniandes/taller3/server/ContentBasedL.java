@@ -272,7 +272,7 @@ public class ContentBasedL {
 	    this.cblr.setData(totalResult);
 		this.cblr.setDataInfo(retListData);
 
-		ArrayList<String> userVerification=this.getNextMovies(searchForSimilar.getUser(), searchForSimilar.getDateF());
+		ArrayList<String> userVerification=this.getNextMovies(searchForSimilar.getUser(), searchForSimilar.getDateI(), searchForSimilar.getDateF());
 		System.out.println("Calculando precision y recall");
 		for(int i=0; i<userVerification.size();i++) {
 			if(moviesRecommended.get(userVerification.get(i))!=null) {
@@ -297,7 +297,7 @@ public class ContentBasedL {
 		return(ret);
 	}
 
-	public ArrayList<String> getNextMovies(int user, String dateF) {
+	public ArrayList<String> getNextMovies(int user, String dateI, String dateF) {
 		ArrayList<String> ret=new ArrayList<String>();
 		
 		Connection conn = null;
@@ -311,7 +311,7 @@ public class ContentBasedL {
 
 			//STEP 4: Execute a query
 			stmt = (Statement) conn.createStatement();
-			String sql = "SELECT userId, movieId, rating FROM rating WHERE timestamp>=UNIX_TIMESTAMP('" + dateF + " 23:59:00') AND userId= " + user + ";";
+			String sql = "SELECT userId, movieId, rating FROM rating WHERE (timestamp<UNIX_TIMESTAMP('" + dateI + " 00:00:00') OR timestamp>UNIX_TIMESTAMP('" + dateF + " 23:59:00')) AND userId= " + user + ";";
 			System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			while(rs.next()) {

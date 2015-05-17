@@ -279,7 +279,7 @@ public class DefaultDataLoader  {
 
 			//STEP 4: Execute a query
 			stmt = (Statement) conn.createStatement();
-			String sql = "SELECT userId, movieId, rating FROM rating WHERE timestamp>=UNIX_TIMESTAMP('" + this.toDate + " 23:59:00') AND userId= " + user + ";";
+			String sql = "SELECT userId, movieId, rating FROM rating WHERE (timestamp<UNIX_TIMESTAMP('" + this.fromDate + " 00:00:00') OR timestamp>UNIX_TIMESTAMP('" + this.toDate + " 23:59:00')) AND userId= " + user + ";";
 			System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			while(rs.next()) {
