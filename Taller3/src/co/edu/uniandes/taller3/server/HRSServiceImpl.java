@@ -20,11 +20,6 @@ import co.edu.uniandes.taller3.shared.ConnectionDB;
 import co.edu.uniandes.taller3.shared.JaccardCoefficient;
 import co.edu.uniandes.taller3.shared.ValueComparator;
 import co.edu.uniandes.taller3.shared.CFResult;
-
-
-
-
-
 import com.google.gwt.thirdparty.javascript.jscomp.Result;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
@@ -51,18 +46,6 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 		return(new CBResultL());
 	}
 
-	@Override
-	public CBResultL initCBL2(CBParametersL data) {
-		try {
-			return(new ContentBasedL2().initCB(data));
-		} catch (IOException e) {}
-		return(new CBResultL());
-	}
-
-	public String[] getInformationBusiness(String businessId) {
-		return ConnectionDB.getInformationBusiness(businessId);
-	}
-	
 	public List<String> CFCBMix(CFResult cfResult, CBResultL cbResult) {
 		List<String> listTotal = new ArrayList();
 		String[] cb = cbResult.getData();

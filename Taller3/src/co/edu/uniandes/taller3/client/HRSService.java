@@ -14,9 +14,6 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 public interface HRSService extends RemoteService{
 
 	String[] getHybridMovies(CFParameters cfData, CBParametersL cbData);
-	String[] getInformationBusiness(String businessId);
-
 	CFResult initCF(CFParameters data);
 	CBResultL initCBL(CBParametersL data);
-	CBResultL initCBL2(CBParametersL data);
 }

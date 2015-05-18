@@ -12,9 +12,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 public interface HRSServiceAsync {
 	
 	void getHybridMovies(CFParameters cfData, CBParametersL cbData, AsyncCallback<String[]> callback);
-	void getInformationBusiness(String businessId, AsyncCallback<String[]> callback);
-
 	void initCF(CFParameters data, AsyncCallback<CFResult> callback);
 	void initCBL(CBParametersL data, AsyncCallback<CBResultL> callback);
-	void initCBL2(CBParametersL data, AsyncCallback<CBResultL> callback);
+	
 }
