@@ -269,10 +269,7 @@ public class ContentBasedL {
 	    	totalResult[i]=result.get(i).get("movieId");
 	    	retListData[i]=result.get(i).get("title") + "(" + result.get(i).get("genres") + ")";
 	    }
-	    this.cblr.setData(totalResult);
-		this.cblr.setDataInfo(retListData);
-
-		ArrayList<String> userVerification=this.getNextMovies(searchForSimilar.getUser(), searchForSimilar.getDateI(), searchForSimilar.getDateF());
+	    		ArrayList<String> userVerification=this.getNextMovies(searchForSimilar.getUser(), searchForSimilar.getDateI(), searchForSimilar.getDateF());
 		System.out.println("Calculando precision y recall");
 		for(int i=0; i<userVerification.size();i++) {
 			if(moviesRecommended.get(userVerification.get(i))!=null) {
@@ -282,6 +279,7 @@ public class ContentBasedL {
 		
 		precision=((float)found)/((float)(found + result.size()));
 		recall=((float)found)/((float)(found + this.userDocs.size()));
+		this.cblr.setData(totalResult);
 		this.cblr.setDataInfo(retListData);
 		this.cblr.setPrecision(precision);
 		this.cblr.setRecall(recall);

@@ -18,8 +18,10 @@ import co.edu.uniandes.taller3.shared.CBResultL;
 import co.edu.uniandes.taller3.shared.CFParameters;
 import co.edu.uniandes.taller3.shared.ConnectionDB;
 import co.edu.uniandes.taller3.shared.JaccardCoefficient;
+import co.edu.uniandes.taller3.shared.Movie;
 import co.edu.uniandes.taller3.shared.ValueComparator;
 import co.edu.uniandes.taller3.shared.CFResult;
+
 import com.google.gwt.thirdparty.javascript.jscomp.Result;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
@@ -46,27 +48,38 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 		return(new CBResultL());
 	}
 
-	public List<String> CFCBMix(CFResult cfResult, CBResultL cbResult) {
-		List<String> listTotal = new ArrayList();
-		String[] cb = cbResult.getData();
-		String[] cf = cfResult.getData();
-		
-		for(int i = 0; i < cb.length; i++) {
-			listTotal.add(cb[i]);
+	public String[] CFCBMix(CFResult cfResult, CBResultL cbResult) {
+		String[] ret={};
+		String[] cb=cbResult.getData();
+		String[] cf=cfResult.getData();
+		ArrayList<String> al=new ArrayList<String>();
+
+		int length=cf.length;
+		if(length<cb.length) {
+			length=cb.length;
 		}
 		
-		for(int i = 0; i < cf.length; i++) {
-			if(!listTotal.contains(cf[i]))
-				listTotal.add(cf[i]);
+		for(int i=0;i<length;i++) {
+			if(i<cb.length) {
+				al.add(cb[i]);
+			}
+			if(i<cf.length) {
+				al.add(cf[i]);
+			}
 		}
-		return listTotal;
+		ret=new String[al.size()];
+		for(int i=0;i<al.size();i++) {
+			ret[i]=al.get(i);
+		}
+		return ret;
 	}
 
 	public String[] getHybridMovies(CFParameters cfData, CBParametersL cbData) {
 		
-		/*CFResult cfResult = new CFResult();
+		CFResult cfResult = new CFResult();
 		CBResultL cbResult = new CBResultL();
-		
+		String[] listaMixed = null;
+		String[] listaFinal = null;
 		try {
 			
 			System.out.print("Paso 1: Colaborativo");
@@ -79,32 +92,30 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 			cbResult = cbl.getCblr();
 			System.out.print("Fin Paso 2: Contenido. Total: " + cbResult.getData().length);
 		
-			List<String> lista = new ArrayList();
-			lista = this.CFCBMix(cfResult, cbResult);
+			listaMixed = this.CFCBMix(cfResult, cbResult);
+			co.edu.uniandes.taller3.server.DefaultDataLoader dl = new co.edu.uniandes.taller3.server.DefaultDataLoader();
+			
+			listaFinal = new String[listaMixed.length]; 
+			listaFinal = dl.getMovieInfo(listaMixed);
 			
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		
-		return cfResult.getDataInfo();*/
-		
-		return getMoviesDbpedia();
-		
+		return listaFinal;
 		
 	}
 	
-	public String[] getMoviesDbpedia() {
+	public List<Movie> getOntologyMovies(int userId, String fechaInicial,	String fechaFinal) {
 		
+		System.out.println("Inicio Ontologia");
 		List<String> moviesUser = new ArrayList<String>();
 		MySQLQuery query = new MySQLQuery();
-		moviesUser = query.getRatingsUser("1", "2005-04-02", "2005-05-02");
-		
-		List<Movie> moviesFinal = new ArrayList<Movie>();
+		moviesUser = query.getRatingsUser(String.valueOf(userId) , fechaInicial, fechaFinal);
+		System.out.println("Fin Ontologia");
 		MongoDB mongo = new MongoDB();
-		moviesFinal = mongo.EncontrarItemsSimilares(moviesUser);
+		return mongo.EncontrarItemsSimilares(moviesUser);
 		
 		
-		
-		return null;
 	}
 }

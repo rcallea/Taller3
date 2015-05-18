@@ -545,7 +545,7 @@ public class MySQLQuery {
 			stmt = (Statement) conn.createStatement();
 			String sql = "select movieId "
 					+ "from rating "
-					+ "where userId = '" + userId + "'"
+					+ "where userId = " + userId 
 					+ " and timestamp >= UNIX_TIMESTAMP('" + dateInicial + "')"
 					+ " and timestamp <= UNIX_TIMESTAMP('" + dateFinal + "')"
 					+ " and rating >= 4";

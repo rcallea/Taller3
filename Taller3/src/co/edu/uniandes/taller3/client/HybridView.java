@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlexTable;
@@ -38,9 +39,13 @@ public class HybridView {
 	private Button buttonSend = new Button(constants.hybridSend());
 	private Controller controller;
 	private HTML htmlResultListResult=new HTML();
+	private TextBox textboxWindowInitialDate=new TextBox();
+	private TextBox textboxWindowFinalDate=new TextBox();
+	private HTML htmlUiSubTitleOnto = new HTML("<br/><h3>Tal vez le interese</h3>");
+	private FlexTable tableResultsOntology =new FlexTable();
 	
-
-	HorizontalPanel hp0=new HorizontalPanel();
+	HorizontalPanel hp0 = new HorizontalPanel();
+	HorizontalPanel hp1 = new HorizontalPanel();
 	/**
 	 * @param controller the controller to set
 	 */
@@ -55,13 +60,24 @@ public class HybridView {
 		int row=0;
 		int column=0;
 		FlexTable ft=new FlexTable();
-		this.textboxUser.setWidth("250px");
-				
-		hp0.add(new HTML("<div style= 'width:150px'>" + this.htmlLabelUsuario + "</div>"));
+		
+		this.textboxUser.setText("1");
+		this.textboxWindowInitialDate.setText("2013/04/02");
+		this.textboxWindowFinalDate.setText("2013/05/02");
+		this.textboxUser.setWidth("150px");
+		this.textboxWindowInitialDate.setWidth("150px");
+		this.textboxWindowFinalDate.setWidth("150px");
+		
+		hp0.add(new HTML("<div style= 'width:200px'>" + this.htmlLabelUsuario + "</div>"));
 		hp0.add(this.textboxUser);
+		hp1.add(new HTML("<div style= 'width:200px'>Rango de fechas (inicio - fin)</div>"));
+		hp1.add(this.textboxWindowInitialDate);
+		hp1.add(new HTML("&nbsp;&nbsp;&nbsp;"));
+		hp1.add(this.textboxWindowFinalDate);
 		
 		this.vp.add(this.htmlUiTitle);
 		ft.setWidget(row++,column, hp0);
+		ft.setWidget(row++,column, hp1);
 		ft.setStyleName("table table-striped");
 		this.vp.add(ft);
 
@@ -69,6 +85,9 @@ public class HybridView {
 		this.vp.add(this.buttonSend);
 		this.vp.add(this.htmlUiSubTitle);
 		this.vp.add(this.htmlResultListResult);
+		this.vp.add(this.htmlUiSubTitleOnto);
+		this.vp.add(this.tableResultsOntology);
+		
 		this.buttonSend.addClickHandler(this.controller);
 		
 		RootPanel.get("hybrid").add(this.vp);
@@ -94,6 +113,36 @@ public class HybridView {
 	public boolean validate() {
 		boolean retorno=true;
 		String message="<ul>";
+		
+		if(!this.getTextboxUser().getText().matches("[0-9]+")) {
+			retorno=false;
+			message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cfUser() + "\": " + this.constants.uiFieldErrorMessage() + "</li>";
+		} else {
+			try {
+				int value=Integer.parseInt(this.getTextboxUser().getText());
+				if(value<Integer.MIN_VALUE || value>Integer.MAX_VALUE) {
+					retorno=false;
+					message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cfUser() + "\". " + this.constants.uiFieldOutOfBoundsMessage(); 
+				}
+			} catch (NumberFormatException nfe) {}
+		}
+		
+		DateTimeFormat format = DateTimeFormat.getFormat("yyyy/MM/dd");
+		try {
+			format.parse(this.getTextboxWindowInitialDate().getText());
+	 
+		} catch (IllegalArgumentException e) {
+			retorno=false;
+			message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cfWindowDate() + "\". " + this.constants.uiFieldOutOfBoundsMessage(); 
+		}
+
+		try {
+			format.parse(this.getTextboxWindowFinalDate().getText());
+	 
+		} catch (IllegalArgumentException e) {
+			retorno=false;
+			message += "<li>" + this.constants.uiFieldError() + "\" " + this.constants.cfWindowDate() + "\". " + this.constants.uiFieldOutOfBoundsMessage(); 
+		}
 
 		if(retorno==false) {
 			this.showErrorMessage(message + "</ul>");
@@ -103,6 +152,8 @@ public class HybridView {
 		}
 		return retorno;
 	}
+
+
 	
 
 	/**
@@ -180,5 +231,37 @@ public class HybridView {
 
 	public void setHtmlResultListResult(HTML htmlResultListResult) {
 		this.htmlResultListResult = htmlResultListResult;
+	}
+
+	public TextBox getTextboxWindowFinalDate() {
+		return textboxWindowFinalDate;
+	}
+
+	public void setTextboxWindowFinalDate(TextBox textboxWindowFinalDate) {
+		this.textboxWindowFinalDate = textboxWindowFinalDate;
+	}
+
+	public TextBox getTextboxWindowInitialDate() {
+		return textboxWindowInitialDate;
+	}
+
+	public void setTextboxWindowInitialDate(TextBox textboxWindowInitialDate) {
+		this.textboxWindowInitialDate = textboxWindowInitialDate;
+	}
+
+	public HTML getHtmlUiSubTitleOnto() {
+		return htmlUiSubTitleOnto;
+	}
+
+	public void setHtmlUiSubTitleOnto(HTML htmlUiSubTitleOnto) {
+		this.htmlUiSubTitleOnto = htmlUiSubTitleOnto;
+	}
+
+	public FlexTable getTableResultsOntology() {
+		return tableResultsOntology;
+	}
+
+	public void setTableResultsOntology(FlexTable tableResultsOntology) {
+		this.tableResultsOntology = tableResultsOntology;
 	}
 }

@@ -18,6 +18,7 @@ import java.util.TreeMap;
 import javax.swing.text.html.HTMLEditorKit.Parser;
 
 import co.edu.uniandes.taller3.shared.JaccardCoefficient;
+import co.edu.uniandes.taller3.shared.Movie;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -46,20 +47,20 @@ public class MongoDB {
 	     	HashMap<String,Double> map = new HashMap<String,Double>();
 	     	for (String movieId : moviesUser) {
 	     		//consulta en x
-		     	BasicDBObject allQuery = new BasicDBObject("Similitud",new BasicDBObject("$gt","2.0"));
+		     	BasicDBObject allQuery = new BasicDBObject("Similitud",new BasicDBObject("$gt","0.0"));
 		     	BasicDBObject fields = new BasicDBObject();
 		     	allQuery.put("MovieId_X", movieId);
 		     	fields.put("Similitud", 1);
 		     	fields.put("MovieId_Y", 1);
-		     	DBCursor cursor1 = collection.find(allQuery, fields);
+		     	DBCursor cursor1 = collection.find(allQuery, fields).sort( new BasicDBObject( "Similitud" , -1 )).limit(1000);
 		     	
 		     	//consulta en Y
-		    	allQuery = new BasicDBObject("Similitud",new BasicDBObject("$gt","2.0"));
-		     	fields = new BasicDBObject();
-		     	allQuery.put("MovieId_Y", movieId);
-		     	fields.put("Similitud", 1);
-		     	fields.put("MovieId_X", 1);
-		     	DBCursor cursor2 = collection.find(allQuery, fields);
+		     	BasicDBObject allQuery2 = new BasicDBObject("Similitud",new BasicDBObject("$gt","0.0"));
+		     	BasicDBObject fields2 = new BasicDBObject();
+		     	allQuery2.put("MovieId_Y", movieId);
+		     	fields2.put("Similitud", 1);
+		     	fields2.put("MovieId_X", 1);
+		     	DBCursor cursor2 = collection.find(allQuery2, fields2).sort( new BasicDBObject( "Similitud" , -1 )).limit(1000);
 		     	
 		     	while(cursor1.hasNext())
 		     	{
@@ -86,13 +87,23 @@ public class MongoDB {
 	     	ValueComparator bvc =  new ValueComparator(map);
             TreeMap<String,Double> sorted_map = new TreeMap<String,Double>(bvc);
             sorted_map.putAll(map);
-            System.out.println(sorted_map);
-	     	
+            
+	    
+            int i = 0;
+            for(Map.Entry<String,Double> entry : sorted_map.entrySet()) {
+            	Movie movie = GetDatosPelicula(entry.getKey());
+            	lstMovies.add(movie);
+            	i++;
+            	
+            	if(i == 30)
+            		break;
+  			}
+  		
 		} catch (Exception e) {
 			System.out.println(e);
 		}
 		
-		return null;
+		return lstMovies;
 	}
 		
 	private static String[] GetNodoList(DBObject objectGeneral, String nodo)

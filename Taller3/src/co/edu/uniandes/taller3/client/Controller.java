@@ -14,10 +14,13 @@ import java.util.List;
 
 
 
+
+
 import co.edu.uniandes.taller3.shared.CBParametersL;
 import co.edu.uniandes.taller3.shared.CBResultL;
 import co.edu.uniandes.taller3.shared.CFParameters;
 import co.edu.uniandes.taller3.shared.CFResult;
+import co.edu.uniandes.taller3.shared.Movie;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -37,7 +40,6 @@ public class Controller implements ClickHandler, EntryPoint {
 	
 	private CFView CFView;
 	private CBLView cblView;
-	private ContentView ContentView;
 	private HybridView HybridView;
 	private RSConstants constants = GWT.create(RSConstants.class);
 
@@ -53,10 +55,6 @@ public class Controller implements ClickHandler, EntryPoint {
 		this.cblView=new CBLView();
 		this.cblView.setController(this);
 		this.cblView.generateUI();
-
-		this.ContentView=new ContentView();
-		this.ContentView.setController(this);
-		this.ContentView.generateUI();
 
 		this.HybridView=new HybridView();
 		this.HybridView.setController(this);
@@ -138,12 +136,13 @@ public class Controller implements ClickHandler, EntryPoint {
 		
 		HybridView.getHtmlUiSubTitle().setHTML("<br/><h3>Calculando</h3>");
 		int userId = Integer.parseInt(this.HybridView.getTextboxUser().getText());
-		
+		String fechaInicial = this.HybridView.getTextboxWindowInitialDate().getText();
+		String fechaFinal = this.HybridView.getTextboxWindowFinalDate().getText();
 		
 		CFParameters cfData=new CFParameters();
 		cfData=new CFParameters(
-				this.CFView.getTextboxWindowInitialDate().getText(),
-				this.CFView.getTextboxWindowFinalDate().getText(),
+				fechaInicial,
+				fechaFinal,
 				this.CFView.getTextboxNeighbors().getText(),
 				this.CFView.getTextboxGradeNumber().getText(),
 				this.CFView.getListBoxMeasureType(),
@@ -152,14 +151,15 @@ public class Controller implements ClickHandler, EntryPoint {
 		
 		
 		CBParametersL cbData=new CBParametersL(
-				this.cblView.getTextboxWindowInitialDate().getText(),
-				this.cblView.getTextboxWindowFinalDate().getText(),
+				fechaInicial,
+				fechaFinal,
 				this.cblView.getTextboxWaitTime(),
 				this.cblView.getListboxMinTermFrequency(),
 				this.cblView.getListboxMinDocFrequency(),
 				this.cblView.getListBoxMinWordLen(),
 				userId);
 
+		//lista hibrida
 		AsyncCallback<String[]> callback = new AsyncCallback<String[]>() {
 
 			public void onFailure(Throwable caught) {
@@ -172,20 +172,57 @@ public class Controller implements ClickHandler, EntryPoint {
 				}
 				else{
 					
-					String text = "<table><hr><td>Película</td><td>Géneros</td></hr>";
+					String text = "<table><hr><td>pel\u00EDcula</td><td>G\u00E9neros</td></hr>";
 					for (String nombre : result) {
-						String oneData = nombre.replaceFirst("-----", "</td><td>");
-						text+="<tr><td>" + oneData + "</td></tr>";
+						if(nombre != null)
+						{
+							String oneData = nombre.replaceFirst("-----", "</td><td>");
+							text+="<tr><td>" + oneData + "</td></tr>";
+						}
 					}
 					text += "</table>";
-					System.out.println(text);
 					HybridView.getHtmlResultListResult().setHTML(text);
 					
 				}
 			}
 		};
 		hrsSvc.getHybridMovies(cfData, cbData, callback);
+		
+		//lista ontologica
+		AsyncCallback<List<Movie>> callbackOntology = new AsyncCallback<List<Movie>>() {
 
+			public void onFailure(Throwable caught) {
+		        // TODO: Do something with errors.
+			}
+
+			public void onSuccess(List<Movie> result) {
+				if(result.size() == 0){
+					HybridView.getHtmlUiSubTitleOnto().setHTML("<br/><h3> Tal vez le interese...</h3>");
+				}
+				else{
+					int i = 0;
+					for (final Movie movie : result) {
+						Hyperlink link = new Hyperlink();  
+						link.setText("Ver");
+						link.addClickListener(new ClickListener() {
+							public void onClick(Widget sender) {
+						        PopupDeatils popup = new PopupDeatils(movie);
+								popup.setStyleName("demo-popup");
+							    popup.show();
+						      }
+						});
+						
+						
+						HybridView.getTableResultsOntology().setWidget(i, 0, new HTML(movie.getMovieUri()));
+						HybridView.getTableResultsOntology().setWidget(i, 1, link);
+						
+						i++;
+					}
+					
+				}
+			}
+		};
+		hrsSvc.getOntologyMovies(userId, fechaInicial, fechaFinal, callbackOntology);
 	}
 	
 	private void sendCBLData() {

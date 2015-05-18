@@ -1,6 +1,8 @@
-package co.edu.uniandes.taller3.server;
+package co.edu.uniandes.taller3.shared;
 
-public class Movie {
+import java.io.Serializable;
+
+public class Movie implements Serializable{
 
 	private String movieId;
 	private String movieUri;
