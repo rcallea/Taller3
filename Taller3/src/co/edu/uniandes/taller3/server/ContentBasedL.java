@@ -179,7 +179,7 @@ public class ContentBasedL {
 			int limit=0;
 			int sizeData=9999;
 			while(moreRecords>0) {
-				String sql = "SELECT movie.movieId, title, genres, info FROM movie WHERE movieId IN (SELECT DISTINCT rating.movieId FROM rating WHERE userId=" + user + " AND timestamp>=UNIX_TIMESTAMP('" + dateI + " 00:00:00') AND timestamp<=UNIX_TIMESTAMP('" + dateF + " 23:59:00')) AND info IS NOT NULL LIMIT " + limit + "," + sizeData + ";";
+				String sql = "SELECT movie.movieId, title, genres, info FROM movie WHERE movieId IN (SELECT DISTINCT rating.movieId FROM rating WHERE rating.rating>=3 AND userId=" + user + " AND timestamp>=UNIX_TIMESTAMP('" + dateI + " 00:00:00') AND timestamp<=UNIX_TIMESTAMP('" + dateF + " 23:59:00')) AND info IS NOT NULL LIMIT " + limit + "," + sizeData + ";";
 				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				//System.out.println("Cargando desde " + limit);
