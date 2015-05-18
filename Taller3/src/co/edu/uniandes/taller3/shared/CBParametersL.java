@@ -124,5 +124,5 @@ public class CBParametersL implements Serializable {
 	public void setUser(int user) {
 		this.user = user;
 	}
-	
+
 }

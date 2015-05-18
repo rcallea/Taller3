@@ -1,9 +1,23 @@
 package co.edu.uniandes.taller3.server;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import javax.swing.text.html.HTMLEditorKit.Parser;
+
+import co.edu.uniandes.taller3.shared.JaccardCoefficient;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -11,213 +25,225 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.WriteResult;
+import com.mongodb.util.JSON;
+import com.mongodb.BasicDBList;
 
 public class MongoDB {
 	
-	private void listUserScore() {
-		MongoClient mongoClient = new MongoClient("localhost");
-		DB db = mongoClient.getDB("recommenderBusiness");
-		DBCollection coll = db.getCollection("review");
-		BasicDBObject allQuery = new BasicDBObject();
-		BasicDBObject fields = new BasicDBObject();
-		fields.put("user_id", 1);
-		fields.put("business_id", 2);
-		fields.put("stars", 3);
-		DBCursor cursor = coll.find(allQuery, fields);
-		try {
-			System.out.println("Usuario\tNegocio\tCalif");
-			while(cursor.hasNext()) {
-			   DBObject singleField=(DBObject) cursor.next();
-			   System.out.print("" + singleField.get("user_id"));
-			   System.out.print("\t" + singleField.get("business_id"));
-			   System.out.println("\t" + singleField.get("stars"));
-		   }
-		} finally {
-		   cursor.close();
-		}
-		mongoClient.close();
-	}
+	private static String baseName = "RecommenderWebSemantic";
+	//private static String baseName = "recommenderTest";
 	
-	private void classifyTestData() {
-		// db.review.update({},{$set : {"g60":0}},false,true)
-		// db.review.update({},{$set : {"g70":0}},false,true)
-		// db.review.update({},{$set : {"g80":0}},false,true)
+	public static List<Movie> EncontrarItemsSimilares(List<String> moviesUser)
+	{
+		List lstMovies = new ArrayList<Movie>();
 		try {
+			
 			MongoClient mongoClient = new MongoClient("localhost");
-			DB db = mongoClient.getDB("recommenderBusiness");
-			DBCollection coll = db.getCollection("review");
-			BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\Ricardo\\Documents\\Maestría\\05SRecomendacion\\distribucion.txt"));
-			String line;
-			line = reader.readLine();
-			String[] tokens;
-			while (line != null) {
-				// Skip comment lines
-				if (line.trim().startsWith("//")) {
-					line = reader.readLine();
-					continue;
-				}
-				tokens = line.split("\t");
-				String usuario=tokens[0];
-				System.out.println("Usuario actual: " + usuario);
-				int g60=Integer.parseInt(tokens[2]);
-				int g70=Integer.parseInt(tokens[3]);
-				int g80=Integer.parseInt(tokens[4]);
-				// First, add the ratings.
-				//dm.addRating(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]));
-				line = reader.readLine();
-				
-				//TODO aquí se establece la consulta para que solo saque el usuario
-				BasicDBObject allQuery = new BasicDBObject().append("user_id", usuario);
-				BasicDBObject fields = new BasicDBObject();
-//				fields.put("user_id", 1);
-//				fields.put("business_id", 2);
-//				fields.put("stars", 3);
-
-				DBCursor cursor = coll.find(allQuery, fields);
-				try {
-//					System.out.println("Usuario\tNegocio\tCalif");
-					while(cursor.hasNext()) {
-					   BasicDBObject singleField=(BasicDBObject) cursor.next();
-					   int value=0;
-					   if(g60>0) {
-						   g60--;
-						   value=1;
-					   }
-					   BasicDBObject newDocument=new BasicDBObject();
-					   newDocument.append("$set", new BasicDBObject().append("g60", value));
-					   coll.update(singleField, newDocument);
-					   value=0;
-
-					   if(g70>0) {
-						   g70--;
-						   value=1;
-					   }
-					   newDocument=new BasicDBObject();
-					   newDocument.append("$set", new BasicDBObject().append("g70", value));
-					   coll.update(singleField, newDocument);
-					   value=0;
-					   
-					   if(g80>0) {
-						   g80--;
-						   value=1;
-					   }
-					   newDocument=new BasicDBObject();
-					   newDocument.append("$set", new BasicDBObject().append("g80", value));
-					   coll.update(singleField, newDocument);
-
-//					   System.out.print("" + singleField.get("user_id"));
-//					   System.out.print("\t" + singleField.get("business_id"));
-//					   System.out.println("\t" + singleField.get("stars"));
-					   System.out.println(singleField);
-					   
-					}
-				} finally {
-				   cursor.close();
-				}
+	     	DB db = mongoClient.getDB(baseName);
+	     	DBCollection collection = db.getCollection("MatrizSimilitud");
+	     	
+	     	HashMap<String,Double> map = new HashMap<String,Double>();
+	     	for (String movieId : moviesUser) {
+	     		//consulta en x
+		     	BasicDBObject allQuery = new BasicDBObject("Similitud",new BasicDBObject("$gt","2.0"));
+		     	BasicDBObject fields = new BasicDBObject();
+		     	allQuery.put("MovieId_X", movieId);
+		     	fields.put("Similitud", 1);
+		     	fields.put("MovieId_Y", 1);
+		     	DBCursor cursor1 = collection.find(allQuery, fields);
+		     	
+		     	//consulta en Y
+		    	allQuery = new BasicDBObject("Similitud",new BasicDBObject("$gt","2.0"));
+		     	fields = new BasicDBObject();
+		     	allQuery.put("MovieId_Y", movieId);
+		     	fields.put("Similitud", 1);
+		     	fields.put("MovieId_X", 1);
+		     	DBCursor cursor2 = collection.find(allQuery, fields);
+		     	
+		     	while(cursor1.hasNext())
+		     	{
+		     		DBObject obj = (DBObject) cursor1.next();
+		     		String movieY = (String)obj.get("MovieId_Y");
+		     		double similitud = Double.parseDouble(obj.get("Similitud").toString());
+		     		if(!map.containsKey(movieY))
+		     			map.put(movieY,similitud);
+		     	}
+		     	cursor1.close();
+		     	
+		     	while(cursor2.hasNext())
+		     	{
+		     		DBObject obj = (DBObject) cursor2.next();
+		     		String movieX = (String)obj.get("MovieId_X");
+		     		double similitud = Double.parseDouble(obj.get("Similitud").toString());
+		     		if(!map.containsKey(movieX))
+		     			map.put(movieX,similitud);
+		     	}
+		     	cursor2.close();
+		     	
 			}
-			reader.close();
-			mongoClient.close();
-		} catch (Exception e) {}
-	}
-	
-	public static ArrayList<String[]> getBusinessInfo(String[] business_id) {
-		String[] getFields={"business_id", "name", "full_address", "city", "state", "stars", "type", "latitude", "longitude"};
-		ArrayList<String[]> ret=new ArrayList<String[]>();
-		ArrayList<String[]> retTemp=new ArrayList<String[]>();
-		MongoClient mongoClient = new MongoClient("localhost");
-		DB db = mongoClient.getDB("recommenderBusiness");
-		DBCollection coll = db.getCollection("business");
-		BasicDBObject fields = new BasicDBObject();
-		BasicDBObject allQuery = new BasicDBObject();
-		allQuery.append("business_id", new BasicDBObject("$in", business_id));
-		int fieldPosition=1;
-		for(;fieldPosition<getFields.length + 1; fieldPosition++) {
-			fields.put(getFields[fieldPosition-1], fieldPosition);
-		}
-		//System.out.println("Buscando: " + business_id[i]);
-		DBCursor cursor = coll.find(allQuery, fields);
-		try {
-			//Recorre los resultados
-			while(cursor.hasNext()) {
-			   DBObject singleField=(DBObject) cursor.next();
-			   String[] retrievedData=new String[getFields.length];
-			   for(fieldPosition=0;fieldPosition<getFields.length;fieldPosition++) {
-				   try {
-					   retrievedData[fieldPosition] = singleField.get(getFields[fieldPosition]).toString();
-				   } catch (NullPointerException e) {
-					   retrievedData[fieldPosition] = "Empty";
-				   }
-			   }
-			   retTemp.add(retrievedData);
-			   //System.out.print("" + singleField.get(getFields[0]));
-			   //System.out.println("\t" + singleField.get(getFields[1]));
-		   }
+	     	
+	     	ValueComparator bvc =  new ValueComparator(map);
+            TreeMap<String,Double> sorted_map = new TreeMap<String,Double>(bvc);
+            sorted_map.putAll(map);
+            System.out.println(sorted_map);
+	     	
 		} catch (Exception e) {
 			System.out.println(e);
-			cursor.close();
-		} finally {
-		   cursor.close();
 		}
 		
-		for(int i=0;i<business_id.length;i++) {
-			for(int j=0;j<retTemp.size();j++) {
-				String[] retrievedData=retTemp.get(j);
-				if(retrievedData[0].equals(business_id[i])) {
-					j=retTemp.size();
-					ret.add(retrievedData);
-				}
-			}
-		}
-		
-		mongoClient.close();
-		return(ret);
+		return null;
 	}
-
-	public static Hashtable<String, Integer> getUserBusiness(String user) {
-		Hashtable<String, Integer> ret=new Hashtable<String, Integer>();
-		System.setProperty("DEBUG.MONGO", "false");
-		MongoClient mongoClient = new MongoClient("localhost");
-		DB db = mongoClient.getDB("recommenderBusiness");
-		DBCollection coll = db.getCollection("review");
-		BasicDBObject allQuery = new BasicDBObject().append("user_id", user);
-		BasicDBObject fields = new BasicDBObject();
-		int posicionConsulta=1;
-		fields.put("_id", posicionConsulta++);
-		fields.put("user_id", posicionConsulta++);
-		fields.put("business_id", posicionConsulta++);
-		fields.put("text", posicionConsulta);
-		DBCursor cursor = coll.find(allQuery, fields);
-
-		try {
-			while(cursor.hasNext()) {
-				try {
-					DBObject dbo=cursor.next();
-					String _id=dbo.get("_id").toString();
-					String user_id=dbo.get("user_id").toString();
-					String business_id=dbo.get("business_id").toString();
-					String text=dbo.get("text").toString();
-					if(ret.get(business_id)==null) {
-						ret.put(business_id, 1);
-					}
-					//System.out.println(_id + ": \t" + user_id + "\t" + business_id);
-				} catch (NullPointerException e) {}
-			}
-		} finally {
-			cursor.close();
-		}
-		mongoClient.close();
-		return(ret);
+		
+	private static String[] GetNodoList(DBObject objectGeneral, String nodo)
+	{
+		
+		String[] arrValue = null;
+		BasicDBList existList = (BasicDBList)objectGeneral.get(nodo);
+		if (existList != null) {
+			Object[] listChildren = ((BasicDBList) objectGeneral.get(nodo)).toArray();
+	  		arrValue = new String[listChildren.length];
+	  		for (int i = 0; i < listChildren.length; i++) {
+	  			DBObject objectValue = (DBObject) listChildren[i];
+	  			if(objectValue != null)
+	  				arrValue[i] = objectValue.get("value").toString();
+	  		}
+		}  		
+  		return arrValue;
 	}
 	
-	public static void main(String[] args) {
-		//new MongoDB().classifyTestData();
-		String[] rrr={"rv7CY8G_XibTx82YhuqQRw", "4GdYyHKukZiMiQu0KJ0Jnw"};
-		ArrayList<String[]> bi=MongoDB.getBusinessInfo(rrr);
-		//Hashtable<String, Integer> bi=MongoDB.getUserBusiness("__jP-g2SFRLaoPrIHFL0LA");
-		for(int i=0;i<bi.size();i++) {
-			String[] aaa=bi.get(i);
-			System.out.println(aaa[0] + "\t" +aaa[1] + "\t" +aaa[2] + "\t" +aaa[3] + "\t" );
-		}
+	private static String[] GetNodoListAbstract(DBObject objectGeneral, String nodo)
+	{
+		String[] arrValue = new String[1];
+		BasicDBList existList = (BasicDBList)objectGeneral.get(nodo);
+		if (existList != null) {
+			Object[] listChildren = ((BasicDBList) objectGeneral.get(nodo)).toArray();
+	  		for (int i = 0; i < listChildren.length; i++) {
+	  			DBObject objectValue = (DBObject) listChildren[i];
+	  			String val  = (String)objectValue.get("lang");
+	  			if(val != null && val.toString().equals("en")){
+	  				arrValue[0] = objectValue.get("value").toString();
+	  			}
+	  		}
+		}  		
+  		return arrValue;
 	}
+	
+	private static Movie GetDatosPelicula(String movieId){
+		
+		Movie movie = new Movie();
+		
+		try {
+            
+            MongoClient mongoClient = new MongoClient("localhost");
+            DB db = mongoClient.getDB(baseName);
+            
+            DBCollection collection = db.getCollection("Movies");
+            
+            BasicDBObject allQuery = new BasicDBObject();
+            BasicDBObject fields = new BasicDBObject();
+      	  	allQuery.put("MovieId", movieId);
+      	  	
+      	  	DBCursor cursor2 = collection.find(allQuery, fields);
+		  	
+      	  	movie.setMovieId(movieId);
+      	  	
+		  	while (cursor2.hasNext()) {
+		  		DBObject cursor = cursor2.next();
+		  		String movieUri = (String)cursor.get("MovieUri");
+		  		movie.setMovieUri(movieUri);
+		  		
+		  		DBObject objectGeneral = (DBObject) cursor.get(movieUri);
+		  		movie.setListAbstract(GetNodoListAbstract(objectGeneral, "http://dbpedia%2Eorg/ontology/abstract"));
+		  		movie.setListCinematography(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/cinematography"));
+		  		movie.setListDirector(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/director"));
+		  		movie.setListDistribuidor(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/distributor"));
+		  		movie.setListEditor(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/editing"));
+		  		movie.setListCompositor(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/ontology/musicComposer"));
+		  		movie.setListCaption(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/caption"));
+		  		movie.setListAlt(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/alt"));
+		  		movie.setListPais(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/country"));
+		  		movie.setListFooter(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/footer"));
+		  		movie.setListLenguaje(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/language"));
+		  		movie.setListMusic(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/music"));
+		  		movie.setListProductor(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/producer"));
+		  		movie.setListEstudio(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/studio"));
+		  		movie.setListEscritor(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/writer"));
+		  		movie.setListSubject(GetNodoList(objectGeneral, "http://purl%2Eorg/dc/terms/subject"));
+		  		movie.setListActores(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/starring"));
+			}
+	         mongoClient.close();
+       } 
+		catch (Exception ex) {
+            ex.printStackTrace();
+        }
+		
+		return movie;
+	}
+	
+	private static double EncontrarSimilitud(Movie movie0, Movie movie1)
+	{
+		/**************************************/
+		
+		double similitud = 0;
+		JaccardCoefficient jc = new JaccardCoefficient();
+		if(movie0.getListCinematography() != null && movie1.getListCinematography() != null)
+			similitud = jc.similarity(movie0.getListCinematography(), movie1.getListCinematography());
+		
+		if(movie0.getListDirector() != null && movie1.getListDirector() != null)
+			similitud += jc.similarity(movie0.getListDirector(), movie1.getListDirector());
+		
+		if(movie0.getListDistribuidor() != null && movie1.getListDistribuidor() != null)
+			similitud += jc.similarity(movie0.getListDistribuidor(), movie1.getListDistribuidor());
+		
+		if(movie0.getListEditor() != null && movie1.getListEditor() != null)
+			similitud += jc.similarity(movie0.getListEditor(), movie1.getListEditor());
+		
+		if(movie0.getListCompositor() != null && movie1.getListCompositor() != null)
+			similitud += jc.similarity(movie0.getListCompositor(), movie1.getListCompositor());
+		
+		if(movie0.getListPais() != null && movie1.getListPais() != null)
+			similitud += jc.similarity(movie0.getListPais(), movie1.getListPais());
+		
+		if(movie0.getListMusic() != null && movie1.getListMusic() != null)
+			similitud += jc.similarity(movie0.getListMusic(), movie1.getListMusic());
+		
+		if(movie0.getListLenguaje() != null && movie1.getListLenguaje() != null)
+			similitud += jc.similarity(movie0.getListLenguaje(), movie1.getListLenguaje());
+		
+		if(movie0.getListProductor() != null && movie1.getListProductor() != null)
+			similitud += jc.similarity(movie0.getListProductor(), movie1.getListProductor());
+		
+		if(movie0.getListEstudio() != null && movie1.getListEstudio() != null)
+			similitud += jc.similarity(movie0.getListEstudio(), movie1.getListEstudio());
+		
+		if(movie0.getListEscritor() != null && movie1.getListEscritor() != null)
+			similitud += jc.similarity(movie0.getListEscritor(), movie1.getListEscritor());
+		
+		if(movie0.getListSubject() != null && movie1.getListSubject() != null)
+			similitud += jc.similarity(movie0.getListSubject(), movie1.getListSubject());
+	
+		if(movie0.getListActores() != null && movie1.getListActores() != null)
+			similitud += jc.similarity(movie0.getListActores(), movie1.getListActores()) * 5;
+		
+		return similitud;
+	}
+	
+}
 
+class ValueComparator implements Comparator<String> {
+
+    Map<String, Double> base;
+    public ValueComparator(Map<String, Double> base) {
+        this.base = base;
+    }
+
+    // Note: this comparator imposes orderings that are inconsistent with equals.    
+    public int compare(String a, String b) {
+        if (base.get(a) >= base.get(b)) {
+            return -1;
+        } else {
+            return 1;
+        } // returning 0 would merge keys
+    }
 }

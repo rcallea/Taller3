@@ -16,7 +16,7 @@ public class CFParameters implements Serializable {
 	private String measureType="";
 	private String recommenderType="";
 	private int user=0;
-
+	
 	public CFParameters() {
 		this.dateI="2014/01/01";
 		this.dateF="2014/12/31";
@@ -36,7 +36,7 @@ public class CFParameters implements Serializable {
 	 * @param user
 	 */
 	public CFParameters(String dateI, String dateF, String neighbors, String ratings,
-			String measureType, String recommenderType, int user) {
+			String measureType, String recommenderType, int user, boolean conHibrido) {
 		super();
 		this.dateI=dateI;
 		this.dateF=dateF;
@@ -138,6 +138,5 @@ public class CFParameters implements Serializable {
 	public void setUser(int user) {
 		this.user = user;
 	}
-	
 	
 }

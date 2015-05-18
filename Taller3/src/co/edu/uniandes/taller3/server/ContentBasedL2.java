@@ -83,7 +83,7 @@ public class ContentBasedL2 {
 	public void writerEntries(String user, int secondsToWait) throws IOException{
 		IndexWriter indexWriter = new IndexWriter(indexDir, config);
 		indexWriter.commit();
-		Hashtable<String, Integer> userBusiness=MongoDB.getUserBusiness(user);
+		Hashtable<String, Integer> userBusiness= null;//MongoDB.getUserBusiness(user);
 		MongoClient mongoClient = new MongoClient("localhost");
 		DB db = mongoClient.getDB("recommenderBusiness");
 		DBCollection coll = db.getCollection("business");
@@ -150,7 +150,7 @@ public class ContentBasedL2 {
 
 	private ArrayList<Document> getUserDocs(String user) {
 		ArrayList<Document> ret=new ArrayList<Document>();
-		Hashtable<String, Integer> userBusiness=MongoDB.getUserBusiness(user);
+		Hashtable<String, Integer> userBusiness=null;//MongoDB.getUserBusiness(user);
 		MongoClient mongoClient = new MongoClient("localhost");
 		DB db = mongoClient.getDB("recommenderBusiness");
 		DBCollection coll = db.getCollection("business");
@@ -256,7 +256,7 @@ public class ContentBasedL2 {
 			retListSearch[i]=totalResult[i];
 		}
 		
-		ArrayList<String[]> retListAllData=MongoDB.getBusinessInfo(retListSearch);
+		ArrayList<String[]> retListAllData=null;//MongoDB.getBusinessInfo(retListSearch);
 		for(int i=0;i<retListAllData.size();i++) {
 			String[] businessData=retListAllData.get(i);
 			retListData[i]=businessData[7] + ": " +businessData[1] + " (" + businessData[4] + " - " + businessData[5] + ")"; 

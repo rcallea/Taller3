@@ -2,17 +2,22 @@ package co.edu.uniandes.taller3.client;
 
 
 //HEAD
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+
+
+
+
+
 
 
 
 import co.edu.uniandes.taller3.shared.CBParametersL;
 import co.edu.uniandes.taller3.shared.CBResultL;
 import co.edu.uniandes.taller3.shared.CFParameters;
-import co.edu.uniandes.taller3.shared.ContentParameters;
 import co.edu.uniandes.taller3.shared.CFResult;
-import co.edu.uniandes.taller3.shared.ContentResult;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -82,20 +87,12 @@ public class Controller implements ClickHandler, EntryPoint {
 				if(this.cblView2.validate()) {
 					this.sendCBLData2();
 				}
-			}else if(sender.equals(this.constants.contentSend())) {
-				if(this.ContentView.validate()) {
-					ContentView.getTableResultsBusiness().clear();
-					this.LoadRecommendationContent();
-				}
-			}
-			else if(sender.equals(this.constants.hybridSend())) {
+			}else if(sender.equals(this.constants.hybridSend())) {
 				if(this.HybridView.validate()) {
-					HybridView.getTableResultsBusiness().clear();
 					this.LoadRecommendationHybrid();
 				}
 			}
 		}		
-		
 	}
 	
 	private void sendCFData() {
@@ -109,7 +106,7 @@ public class Controller implements ClickHandler, EntryPoint {
 					this.CFView.getTextboxGradeNumber().getText(),
 					this.CFView.getListBoxMeasureType(),
 					this.CFView.getListBoxRecommenderType(),
-					Integer.parseInt(this.CFView.getTextboxUser().getText()));
+					Integer.parseInt(this.CFView.getTextboxUser().getText()), false);
 			this.CFView.getHtmlPrecisionResult().setHTML("<strong>Calculando...</strong>");
 			this.CFView.getHtmlRecallResult().setHTML("<strong>Calculando...</strong>");
 			this.CFView.getHtmlResultListResult().setHTML("<strong>Sin resultados</strong>");
@@ -145,83 +142,25 @@ public class Controller implements ClickHandler, EntryPoint {
 		this.CFView.getHtmlResultListResult().setHTML(text);
 	}
 
-	private void LoadRecommendationContent() {
-		ContentParameters data=new ContentParameters();
-		
-		String nameCity = this.ContentView.getListboxCity(); 
-		String category = this.ContentView.getTextboxCategory().getText();  
-		String description = this.ContentView.getTextboxDescription().getText();
-		String day = this.ContentView.getListboxDay();
-		String hour = this.ContentView.getListboxHour();
-		double weightName = Double.parseDouble(this.ContentView.getTextboxWeightName().getText());
-		double weightCat = Double.parseDouble(this.ContentView.getTextboxWeightCat().getText());
-		double weightAtt = Double.parseDouble(this.ContentView.getTextboxWeightAttr().getText());
-		double weightCom = Double.parseDouble(this.ContentView.getTextboxWeightComm().getText());
-		
-		data=new ContentParameters(nameCity, category, description, day, hour, weightName, weightCat, weightAtt, weightCom);
-		
-		AsyncCallback<List<ContentResult>> callback = new AsyncCallback<List<ContentResult>>() {
-			public void onFailure(Throwable caught) {
-		        // TODO: Do something with errors.
-			}
-
-			public void onSuccess(List<ContentResult> result) {
-
-				if(result.size() == 0){
-					ContentView.getHtmlUiSubTitle().setHTML("<br/><h3> No se encontraron resultados</h3>");
-				}
-				else{
-					ContentView.getHtmlUiSubTitle().setHTML("<br/><h3> Nuestras recomendaciones</h3>");
-					int i = 0;
-					for (final ContentResult contentResult : result) {
-						Hyperlink link = new Hyperlink();  
-						link.setText(contentResult.getName());
-						link.addClickListener(new ClickListener() {
-							public void onClick(Widget sender) {
-						        PopupDeatils popup = new PopupDeatils(contentResult);
-								popup.setStyleName("demo-popup");
-							    popup.show();
-						      }
-							
-						});
-						
-						ContentView.getTableResultsBusiness().setWidget(i, 0, link);
-						i++;
-					}
-				}
-			}
-		};
-		hrsSvc.getContentBusiness(data, null, callback);
-
-	}
-	
 	private void LoadRecommendationHybrid() {
-		ContentParameters contentData=new ContentParameters();
 		
 		HybridView.getHtmlUiSubTitle().setHTML("<br/><h3>Calculando</h3>");
 		int userId = Integer.parseInt(this.HybridView.getTextboxUser().getText());
-		String nameCity = this.HybridView.getListboxCity(); 
-		String category = this.HybridView.getTextboxCategory().getText();  
-		String description = this.HybridView.getTextboxDescription().getText();
-		String day = this.ContentView.getListboxDay();
-		String hour = this.ContentView.getListboxHour();
-		double weightName = Double.parseDouble(this.ContentView.getTextboxWeightName().getText());
-		double weightCat = Double.parseDouble(this.ContentView.getTextboxWeightCat().getText());
-		double weightAtt = Double.parseDouble(this.ContentView.getTextboxWeightAttr().getText());
-		double weightCom = Double.parseDouble(this.ContentView.getTextboxWeightComm().getText());		
 		
-		contentData=new ContentParameters(nameCity, category, description, day,hour, weightName, weightCat, weightAtt, weightCom);
 		
 		CFParameters cfData=new CFParameters();
-		cfData=new CFParameters(this.CFView.getTextboxWindowInitialDate().getText(),
+		cfData=new CFParameters(
+				this.CFView.getTextboxWindowInitialDate().getText(),
 				this.CFView.getTextboxWindowFinalDate().getText(),
 				this.CFView.getTextboxNeighbors().getText(),
 				this.CFView.getTextboxGradeNumber().getText(),
 				this.CFView.getListBoxMeasureType(),
 				this.CFView.getListBoxRecommenderType(),
-				userId);
-			
-		CBParametersL cbData=new CBParametersL(this.cblView.getTextboxWindowInitialDate().getText(),
+				userId, true);
+		
+		
+		CBParametersL cbData=new CBParametersL(
+				this.cblView.getTextboxWindowInitialDate().getText(),
 				this.cblView.getTextboxWindowFinalDate().getText(),
 				this.cblView.getTextboxWaitTime(),
 				this.cblView.getListboxMinTermFrequency(),
@@ -229,44 +168,31 @@ public class Controller implements ClickHandler, EntryPoint {
 				this.cblView.getListBoxMinWordLen(),
 				userId);
 
-		CBParametersL cbData2=new CBParametersL("", this.cblView2.getListboxDatasetSize(),
-				this.cblView2.getTextboxWaitTime(),
-				this.cblView2.getListboxMinTermFrequency(),
-				this.cblView2.getListboxMinDocFrequency(),
-				this.cblView2.getListBoxMinWordLen(),
-				userId);
-
-		AsyncCallback<List<ContentResult>> callback = new AsyncCallback<List<ContentResult>>() {
+		
+		AsyncCallback<String[]> callback = new AsyncCallback<String[]>() {
 			public void onFailure(Throwable caught) {
 		        // TODO: Do something with errors.
 			}
 
-			public void onSuccess(List<ContentResult> result) {
-				if(result.size() == 0){
+			public void onSuccess(String[] result) {
+				if(result.length == 0){
 					HybridView.getHtmlUiSubTitle().setHTML("<br/><h3> No se encontraron resultados</h3>");
 				}
 				else{
-					HybridView.getHtmlUiSubTitle().setHTML("<br/><h3> Nuestras recomendaciones</h3>");
-					int i = 0;
-					for (final ContentResult contentResult : result) {
-						Hyperlink link = new Hyperlink();  
-						link.setText(contentResult.getName());
-						link.addClickListener(new ClickListener() {
-							public void onClick(Widget sender) {
-						        PopupDeatils popup = new PopupDeatils(contentResult);
-								popup.setStyleName("demo-popup");
-							    popup.show();
-						      }
-							
-						});
-						
-						HybridView.getTableResultsBusiness().setWidget(i, 0, link);
-						i++;
+					
+					String text = "<table><hr><td>Película</td><td>Géneros</td></hr>";
+					for (String nombre : result) {
+						String oneData = nombre.replaceFirst("-----", "</td><td>");
+						text+="<tr><td>" + oneData + "</td></tr>";
 					}
+					text += "</table>";
+					System.out.println(text);
+					HybridView.getHtmlResultListResult().setHTML(text);
+					
 				}
 			}
 		};
-		hrsSvc.getHybridBusiness(cfData, cbData, cbData2, contentData, callback);
+		hrsSvc.getHybridMovies(cfData, cbData, callback);
 
 	}
 	
