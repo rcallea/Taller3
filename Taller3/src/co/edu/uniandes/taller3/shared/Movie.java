@@ -6,6 +6,7 @@ public class Movie implements Serializable{
 
 	private String movieId;
 	private String movieUri;
+	private String name;
 	private String[] listAbstract;
 	private String[] listCinematography;
 	private String[] listDirector;
@@ -254,6 +255,18 @@ public class Movie implements Serializable{
 
 	public void setListActores(String[] listActores) {
 		this.listActores = listActores;
+	}
+
+
+
+	public String getName() {
+		return name;
+	}
+
+
+
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	

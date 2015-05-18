@@ -15,6 +15,7 @@ public class CBParametersL implements Serializable {
 	private int minDocFrequency=0;
 	private int minWordLen=0;
 	private int user=0;
+	private boolean conHibrido = false;
 	/**
 	 * @return the dateI
 	 */
@@ -54,7 +55,7 @@ public class CBParametersL implements Serializable {
 	 * @param user
 	 */
 	public CBParametersL(String dateI, String dateF, float waitTime,
-			int minTermFrequency, int minDocFrequency, int minWordLen, int user) {
+			int minTermFrequency, int minDocFrequency, int minWordLen, int user, boolean conHibrido) {
 		super();
 		this.dateI = dateI;
 		this.dateF = dateF;
@@ -63,6 +64,7 @@ public class CBParametersL implements Serializable {
 		this.minDocFrequency = minDocFrequency;
 		this.minWordLen = minWordLen;
 		this.user = user;
+		this.conHibrido = conHibrido;
 	}
 	/**
 	 * @return the waitTime
@@ -123,6 +125,12 @@ public class CBParametersL implements Serializable {
 	 */
 	public void setUser(int user) {
 		this.user = user;
+	}
+	public boolean isConHibrido() {
+		return conHibrido;
+	}
+	public void setConHibrido(boolean conHibrido) {
+		this.conHibrido = conHibrido;
 	}
 
 }

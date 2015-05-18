@@ -39,7 +39,8 @@ public class CFView {
 	private HTML htmlUser=new HTML(constants.cfUser());
 	private HTML htmlPrecision=new HTML(constants.cfPrecision());
 	private HTML htmlRecall=new HTML(constants.cfRecall());
-	private HTML htmlResultList=new HTML(constants.cfResultList());
+	private HTML htmlResultList=new HTML("<strong>" +  constants.cfResultList() + "</strong></br></br></br><img src='/images/DVDMoviesTemplate.png'>");
+	
 	private HTML htmlError=new HTML();
 	private TextBox textboxWindowInitialDate=new TextBox();
 	private TextBox textboxWindowFinalDate=new TextBox();
@@ -70,6 +71,8 @@ public class CFView {
 		FlexTable ft=new FlexTable();
 		HorizontalPanel hp=new HorizontalPanel();
 		
+		this.htmlResultList.setVisible(false);
+		
 		this.textboxWindowInitialDate.setText("2014/12/01");
 		this.textboxWindowFinalDate.setText("2014/12/31");
 		this.textboxNeighbors.setText("4");
@@ -78,7 +81,6 @@ public class CFView {
 		this.setListBoxRecommenderType(constants.cfRecommenderTypeValues());
 		this.textboxUser.setText("66635");
 		
-		//this.listboxWindowInitialDate.setWidth("100px");
 		this.textboxNeighbors.setWidth("100px");
 		this.textboxGradeNumber.setWidth("100px");
 		this.listBoxMeasureType.setWidth("200px");
@@ -86,6 +88,7 @@ public class CFView {
 		this.textboxUser.setWidth("200px");
 		
 		hp.add(this.textboxWindowInitialDate);
+		hp.add(new HTML("&nbsp;&nbsp;&nbsp;"));
 		hp.add(this.textboxWindowFinalDate);
 		
 		this.vp.add(this.htmlUiTitle);

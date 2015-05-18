@@ -16,6 +16,7 @@ public class CFParameters implements Serializable {
 	private String measureType="";
 	private String recommenderType="";
 	private int user=0;
+	private boolean conHibrido = false; 
 	
 	public CFParameters() {
 		this.dateI="2014/01/01";
@@ -25,6 +26,7 @@ public class CFParameters implements Serializable {
 		this.measureType = "true";
 		this.recommenderType = "true";
 		this.user = 1;
+		this.conHibrido = false;
 	}
 	
 	/**
@@ -45,6 +47,7 @@ public class CFParameters implements Serializable {
 		this.measureType = measureType;
 		this.recommenderType = recommenderType;
 		this.user = user;
+		this.conHibrido = conHibrido;
 	}
 
 
@@ -137,6 +140,14 @@ public class CFParameters implements Serializable {
 	 */
 	public void setUser(int user) {
 		this.user = user;
+	}
+
+	public boolean isConHibrido() {
+		return conHibrido;
+	}
+
+	public void setConHibrido(boolean conHibrido) {
+		this.conHibrido = conHibrido;
 	}
 	
 }

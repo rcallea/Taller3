@@ -41,8 +41,8 @@ public class HybridView {
 	private HTML htmlResultListResult=new HTML();
 	private TextBox textboxWindowInitialDate=new TextBox();
 	private TextBox textboxWindowFinalDate=new TextBox();
-	private HTML htmlUiSubTitleOnto = new HTML("<br/><h3>Tal vez le interese</h3>");
 	private FlexTable tableResultsOntology =new FlexTable();
+	private HTML htmlUiSubTitleOnto=new HTML("<br/><br/><img src='/images/tituloOntologia.jpg'><br/><br/>");
 	
 	HorizontalPanel hp0 = new HorizontalPanel();
 	HorizontalPanel hp1 = new HorizontalPanel();
@@ -61,6 +61,7 @@ public class HybridView {
 		int column=0;
 		FlexTable ft=new FlexTable();
 		
+		this.htmlUiSubTitleOnto.setVisible(false);
 		this.textboxUser.setText("1");
 		this.textboxWindowInitialDate.setText("2013/04/02");
 		this.textboxWindowFinalDate.setText("2013/05/02");

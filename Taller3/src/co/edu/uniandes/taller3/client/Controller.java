@@ -7,15 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-
-
-
-
-
-
-
-
-
 import co.edu.uniandes.taller3.shared.CBParametersL;
 import co.edu.uniandes.taller3.shared.CBResultL;
 import co.edu.uniandes.taller3.shared.CFParameters;
@@ -99,7 +90,7 @@ public class Controller implements ClickHandler, EntryPoint {
 					Integer.parseInt(this.CFView.getTextboxUser().getText()), false);
 			this.CFView.getHtmlPrecisionResult().setHTML("<strong>Calculando...</strong>");
 			this.CFView.getHtmlRecallResult().setHTML("<strong>Calculando...</strong>");
-			this.CFView.getHtmlResultListResult().setHTML("<strong>Sin resultados</strong>");
+			this.CFView.getHtmlResultListResult().setHTML("<strong>Buscando...</strong>");
 	} catch (NumberFormatException nfe) {}
 		
 		AsyncCallback<CFResult> callback = new AsyncCallback<CFResult>() {
@@ -119,6 +110,7 @@ public class Controller implements ClickHandler, EntryPoint {
 	}
 
 	private void updateCFResult(CFResult result) {
+		this.CFView.getHtmlResultList().setVisible(true);
 		this.CFView.getHtmlPrecisionResult().setText("" + result.getPrecision());
 		this.CFView.getHtmlRecallResult().setText("" + result.getRecall());
 		String text="Mostrando " + result.getDataInfo().length + " recomendaciones.<br/>";
@@ -134,7 +126,10 @@ public class Controller implements ClickHandler, EntryPoint {
 
 	private void LoadRecommendationHybrid() {
 		
+		HybridView.getHtmlResultListResult().setHTML(""); 
+    	HybridView.getTableResultsOntology().clear();
 		HybridView.getHtmlUiSubTitle().setHTML("<br/><h3>Calculando</h3>");
+		
 		int userId = Integer.parseInt(this.HybridView.getTextboxUser().getText());
 		String fechaInicial = this.HybridView.getTextboxWindowInitialDate().getText();
 		String fechaFinal = this.HybridView.getTextboxWindowFinalDate().getText();
@@ -157,10 +152,10 @@ public class Controller implements ClickHandler, EntryPoint {
 				this.cblView.getListboxMinTermFrequency(),
 				this.cblView.getListboxMinDocFrequency(),
 				this.cblView.getListBoxMinWordLen(),
-				userId);
+				userId, true);
 
 		//lista hibrida
-		AsyncCallback<String[]> callback = new AsyncCallback<String[]>() {
+		/*AsyncCallback<String[]> callback = new AsyncCallback<String[]>() {
 
 			public void onFailure(Throwable caught) {
 		        // TODO: Do something with errors.
@@ -172,7 +167,8 @@ public class Controller implements ClickHandler, EntryPoint {
 				}
 				else{
 					
-					String text = "<table><hr><td>pel\u00EDcula</td><td>G\u00E9neros</td></hr>";
+					HybridView.getHtmlUiSubTitle().setHTML("<br/><h3>Nuestras recomendaciones</h3>");
+					String text = "<table><hr><td><strong>pel\u00EDcula</strong></td><td><strong>G\u00E9neros</strong></td></hr>";
 					for (String nombre : result) {
 						if(nombre != null)
 						{
@@ -186,7 +182,7 @@ public class Controller implements ClickHandler, EntryPoint {
 				}
 			}
 		};
-		hrsSvc.getHybridMovies(cfData, cbData, callback);
+		hrsSvc.getHybridMovies(cfData, cbData, callback);*/
 		
 		//lista ontologica
 		AsyncCallback<List<Movie>> callbackOntology = new AsyncCallback<List<Movie>>() {
@@ -197,9 +193,10 @@ public class Controller implements ClickHandler, EntryPoint {
 
 			public void onSuccess(List<Movie> result) {
 				if(result.size() == 0){
-					HybridView.getHtmlUiSubTitleOnto().setHTML("<br/><h3> Tal vez le interese...</h3>");
+					HybridView.getHtmlUiSubTitleOnto().setVisible(false);
 				}
 				else{
+					HybridView.getHtmlUiSubTitleOnto().setVisible(true);
 					int i = 0;
 					for (final Movie movie : result) {
 						Hyperlink link = new Hyperlink();  
@@ -212,10 +209,10 @@ public class Controller implements ClickHandler, EntryPoint {
 						      }
 						});
 						
-						
-						HybridView.getTableResultsOntology().setWidget(i, 0, new HTML(movie.getMovieUri()));
+						HybridView.getTableResultsOntology().setWidget(i, 0, new HTML(movie.getName()));
 						HybridView.getTableResultsOntology().setWidget(i, 1, link);
-						
+						HybridView.getTableResultsOntology().getColumnFormatter().setWidth(0, "750px");
+						HybridView.getTableResultsOntology().getColumnFormatter().setWidth(1, "50px");
 						i++;
 					}
 					
@@ -236,10 +233,10 @@ public class Controller implements ClickHandler, EntryPoint {
 					this.cblView.getListboxMinTermFrequency(),
 					this.cblView.getListboxMinDocFrequency(),
 					this.cblView.getListBoxMinWordLen(),
-					Integer.parseInt(this.cblView.getTextboxUser()));
+					Integer.parseInt(this.cblView.getTextboxUser()),false);
 			this.cblView.getHtmlPrecisionResult().setHTML("<strong>Calculando...</strong>");
 			this.cblView.getHtmlRecallResult().setHTML("<strong>Calculando...</strong>");
-			this.cblView.getHtmlResultListResult().setHTML("<strong>Sin resultados</strong>");
+			this.cblView.getHtmlResultListResult().setHTML("<strong>Buscando...</strong>");
 		} catch (NumberFormatException nfe) {}
 		
 		AsyncCallback<CBResultL> callback = new AsyncCallback<CBResultL>() {
@@ -259,6 +256,7 @@ public class Controller implements ClickHandler, EntryPoint {
 	}
 
 	private void updateCBLResult(CBResultL result) {
+		this.cblView.getHtmlResultList().setVisible(true);
 		this.cblView.getHtmlPrecisionResult().setText("" + result.getPrecision());
 		this.cblView.getHtmlRecallResult().setText("" + result.getRecall());
 		String text="";
@@ -270,8 +268,7 @@ public class Controller implements ClickHandler, EntryPoint {
 		if(tam>resultText.length) {
 			tam=resultText.length;
 		}
-		
-		text=text + "</ul><hr/>Mostrando " + tam + " pel\u00EDculas recomendadas<ul>";
+		text="Mostrando " + tam + " recomendaciones.<br/>";
 		text=text + "<table><hr><td>Pel\u00EDcula</td><td>Resumen</td></hr>";
 		for(int i=0;i<tam;i++) {
 			text=text + "<li>" + resultText1[i] + "</li>";

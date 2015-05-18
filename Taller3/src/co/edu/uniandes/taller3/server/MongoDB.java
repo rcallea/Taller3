@@ -123,6 +123,23 @@ public class MongoDB {
   		return arrValue;
 	}
 	
+	private static String GetNodoListName(DBObject objectGeneral, String nodo)
+	{
+		
+		String[] arrValue = null;
+		BasicDBList existList = (BasicDBList)objectGeneral.get(nodo);
+		if (existList != null) {
+			Object[] listChildren = ((BasicDBList) objectGeneral.get(nodo)).toArray();
+	  		arrValue = new String[listChildren.length];
+	  		for (int i = 0; i < listChildren.length; i++) {
+	  			DBObject objectValue = (DBObject) listChildren[i];
+	  			if(objectValue != null)
+	  				arrValue[i] = objectValue.get("value").toString();
+	  		}
+		}  		
+  		return arrValue[0];
+	}
+	
 	private static String[] GetNodoListAbstract(DBObject objectGeneral, String nodo)
 	{
 		String[] arrValue = new String[1];
@@ -165,6 +182,7 @@ public class MongoDB {
 		  		movie.setMovieUri(movieUri);
 		  		
 		  		DBObject objectGeneral = (DBObject) cursor.get(movieUri);
+		  		movie.setName(GetNodoListName(objectGeneral, "http://dbpedia%2Eorg/property/name"));
 		  		movie.setListAbstract(GetNodoListAbstract(objectGeneral, "http://dbpedia%2Eorg/ontology/abstract"));
 		  		movie.setListCinematography(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/cinematography"));
 		  		movie.setListDirector(GetNodoList(objectGeneral, "http://dbpedia%2Eorg/property/director"));

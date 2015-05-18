@@ -82,6 +82,8 @@ public class HRSServiceImpl extends RemoteServiceServlet implements HRSService {
 		String[] listaFinal = null;
 		try {
 			
+			System.out.print("-----------------Inicio Hibrido-------------------");
+			
 			System.out.print("Paso 1: Colaborativo");
 			cfResult = new CollaborativeFiltering().initCF(cfData);
 			System.out.print("Fin Paso 1: Colaborativo. Total: " + cfResult.getData().length);

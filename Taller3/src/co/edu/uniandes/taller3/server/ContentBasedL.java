@@ -269,7 +269,8 @@ public class ContentBasedL {
 	    	totalResult[i]=result.get(i).get("movieId");
 	    	retListData[i]=result.get(i).get("title") + "(" + result.get(i).get("genres") + ")";
 	    }
-	    		ArrayList<String> userVerification=this.getNextMovies(searchForSimilar.getUser(), searchForSimilar.getDateI(), searchForSimilar.getDateF());
+	    
+	    ArrayList<String> userVerification=this.getNextMovies(searchForSimilar.getUser(), searchForSimilar.getDateI(), searchForSimilar.getDateF());
 		System.out.println("Calculando precision y recall");
 		for(int i=0; i<userVerification.size();i++) {
 			if(moviesRecommended.get(userVerification.get(i))!=null) {
@@ -277,8 +278,11 @@ public class ContentBasedL {
 			}
 		}
 		
-		precision=((float)found)/((float)(found + result.size()));
-		recall=((float)found)/((float)(found + this.userDocs.size()));
+		if(!searchForSimilar.isConHibrido())
+		{
+			precision=((float)found)/((float)(found + result.size()));
+			recall=((float)found)/((float)(found + this.userDocs.size()));
+		}
 		this.cblr.setData(totalResult);
 		this.cblr.setDataInfo(retListData);
 		this.cblr.setPrecision(precision);
@@ -310,7 +314,7 @@ public class ContentBasedL {
 			//STEP 4: Execute a query
 			stmt = (Statement) conn.createStatement();
 			String sql = "SELECT userId, movieId, rating FROM rating WHERE (timestamp<UNIX_TIMESTAMP('" + dateI + " 00:00:00') OR timestamp>UNIX_TIMESTAMP('" + dateF + " 23:59:00')) AND userId= " + user + ";";
-			System.out.println(sql);
+			//System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			while(rs.next()) {
 				ret.add(rs.getString("movieId"));

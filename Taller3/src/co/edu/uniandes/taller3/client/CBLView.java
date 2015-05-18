@@ -34,7 +34,7 @@ public class CBLView {
 	private HTML htmlUser=new HTML(constants.cfUser());
 	private HTML htmlPrecision=new HTML(constants.cblPrecision());
 	private HTML htmlRecall=new HTML(constants.cblRecall());
-	private HTML htmlResultList=new HTML(constants.cblResultList());
+	private HTML htmlResultList=new HTML("<strong>" + constants.cblResultList() + "</strong></br></br></br><img src='/images/entradas.png'>");
 	private HTML htmlError=new HTML();
 	private TextBox textboxWindowInitialDate=new TextBox();
 	private TextBox textboxWindowFinalDate=new TextBox();
@@ -65,6 +65,7 @@ public class CBLView {
 		FlexTable ft=new FlexTable();
 		HorizontalPanel hp=new HorizontalPanel();
 		
+		this.htmlResultList.setVisible(false);
 		this.textboxWindowInitialDate.setText("2014/12/01");
 		this.textboxWindowFinalDate.setText("2014/12/31");
 		this.textboxWaitTime.setText("1");
@@ -82,6 +83,7 @@ public class CBLView {
 		this.textboxUser.setWidth("200px");
 		
 		hp.add(this.textboxWindowInitialDate);
+		hp.add(new HTML("&nbsp;&nbsp;&nbsp;"));
 		hp.add(this.textboxWindowFinalDate);
 		
 		this.vp.add(this.htmlUiTitle);

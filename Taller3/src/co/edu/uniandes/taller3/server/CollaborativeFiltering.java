@@ -50,18 +50,19 @@ public class CollaborativeFiltering {
 			}
 			
 			String[] retList=new String[maxDataSize];
-			String[] retListData;
+			String[] retListData = new String[maxDataSize];
 
 			for(int i=0;i<maxDataSize;i++) {
 				retList[i]=""  + recommendations.get(i);
 			}
 			
-			retListData = loader.getMovieInfo(retList);
-
-			System.out.println("Calculando precision y recall a CF: " + new Date());
-			this.precisionRecallCF(retList, loader.getNextMovies(data.getUser()));
-			ret=new CFResult(retList, retListData, this.precision, this.recall);
-		
+			if(!data.isConHibrido())
+			{
+				retListData = loader.getMovieInfo(retList);
+				System.out.println("Calculando precision y recall a CF: " + new Date());
+				this.precisionRecallCF(retList, loader.getNextMovies(data.getUser()));
+			}
+			ret = new CFResult(retList, retListData, this.precision, this.recall);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
