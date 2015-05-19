@@ -17,4 +17,5 @@ public class MySQLConstant {
 	//  Database credentials
 	public static final String USER = "root";
 	public static final String PASS = "123456";
+	
 }

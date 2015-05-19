@@ -155,7 +155,7 @@ public class Controller implements ClickHandler, EntryPoint {
 				userId, true);
 
 		//lista hibrida
-		/*AsyncCallback<String[]> callback = new AsyncCallback<String[]>() {
+		AsyncCallback<String[]> callback = new AsyncCallback<String[]>() {
 
 			public void onFailure(Throwable caught) {
 		        // TODO: Do something with errors.
@@ -182,7 +182,7 @@ public class Controller implements ClickHandler, EntryPoint {
 				}
 			}
 		};
-		hrsSvc.getHybridMovies(cfData, cbData, callback);*/
+		hrsSvc.getHybridMovies(cfData, cbData, callback);
 		
 		//lista ontologica
 		AsyncCallback<List<Movie>> callbackOntology = new AsyncCallback<List<Movie>>() {

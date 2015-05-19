@@ -35,6 +35,10 @@ public class MongoDB {
 	private static String baseName = "RecommenderWebSemantic";
 	//private static String baseName = "recommenderTest";
 	
+	public static void main(String[] args) {
+		EvaluacionOntologico();
+	}
+	
 	public static List<Movie> EncontrarItemsSimilares(List<String> moviesUser)
 	{
 		List lstMovies = new ArrayList<Movie>();
@@ -106,6 +110,102 @@ public class MongoDB {
 		return lstMovies;
 	}
 		
+	private static void EvaluacionOntologico()
+	{
+		String movieId = "940";
+		List lstMovies = new ArrayList<String>();
+		try {
+			
+			MongoClient mongoClient = new MongoClient("localhost");
+	     	DB db = mongoClient.getDB(baseName);
+	     	DBCollection collection = db.getCollection("MatrizSimilitud");
+	     	
+	     	HashMap<String,Double> map = new HashMap<String,Double>();
+	     	
+     		//consulta en x
+	     	BasicDBObject allQuery = new BasicDBObject("Similitud",new BasicDBObject("$gt","0.0"));
+	     	BasicDBObject fields = new BasicDBObject();
+	     	allQuery.put("MovieId_X", movieId);
+	     	fields.put("Similitud", 1);
+	     	fields.put("MovieId_Y", 1);
+	     	DBCursor cursor1 = collection.find(allQuery, fields).sort( new BasicDBObject( "Similitud" , -1 )).limit(1000);
+	     	
+	     	//consulta en Y
+	     	BasicDBObject allQuery2 = new BasicDBObject("Similitud",new BasicDBObject("$gt","0.0"));
+	     	BasicDBObject fields2 = new BasicDBObject();
+	     	allQuery2.put("MovieId_Y", movieId);
+	     	fields2.put("Similitud", 1);
+	     	fields2.put("MovieId_X", 1);
+	     	DBCursor cursor2 = collection.find(allQuery2, fields2).sort( new BasicDBObject( "Similitud" , -1 )).limit(1000);
+	     	
+	     	while(cursor1.hasNext())
+	     	{
+	     		DBObject obj = (DBObject) cursor1.next();
+	     		String movieY = (String)obj.get("MovieId_Y");
+	     		double similitud = Double.parseDouble(obj.get("Similitud").toString());
+	     		map.put(movieY,similitud);
+	     	}
+	     	cursor1.close();
+	     	
+	     	while(cursor2.hasNext())
+	     	{
+	     		DBObject obj = (DBObject) cursor2.next();
+	     		String movieX = (String)obj.get("MovieId_X");
+	     		double similitud = Double.parseDouble(obj.get("Similitud").toString());
+	     		map.put(movieX,similitud);
+	     	}
+	     	cursor2.close();
+	     	 	
+	     	ValueComparator bvc =  new ValueComparator(map);
+            TreeMap<String,Double> sorted_map = new TreeMap<String,Double>(bvc);
+            sorted_map.putAll(map);
+            
+            int i = 0;
+            for(Map.Entry<String,Double> entry : sorted_map.entrySet()) {
+            	lstMovies.add(entry.getKey());
+            	i++;
+            	
+            	if(i == 100)
+            		break;
+  			}
+            
+            ///----------------
+            MySQLQuery query = new MySQLQuery();
+            List<String> lstUsers = new ArrayList<String>();
+            List<String> lstMoviesUsers = new ArrayList<String>();
+            
+            lstUsers = query.getRatingsMovieEval(movieId);
+
+            System.out.println("MovieId: " + movieId + " Peliculas Similares: " + lstMovies);
+            for (String userId : lstUsers) {
+            	
+            	lstMoviesUsers = query.getRatingsUserEval(userId);
+            	
+            	List<String> lstEncontro = new ArrayList<String>();
+            	for (String movie : lstMoviesUsers) {
+            		if(lstMovies.contains(movie))
+            			lstEncontro.add(movie);
+            	}
+            	
+            	double TP = lstEncontro.size();
+            	double FP = lstMovies.size() - lstEncontro.size();
+            	double FN = 0;
+            	if(lstMoviesUsers.size() - lstMovies.size() > 0)
+            		FN = lstMoviesUsers.size() - lstMovies.size();
+            	
+            	double presicion = TP/(TP + FP);
+            	double recall = TP/(TP + FN);
+            	
+            	System.out.println("User: " + userId + " ; TP: " + TP + " ; FP: " + FP + " ; FN: " + FN + " ; Precision: "+ presicion+ " ; Recall: " + recall + " ; Peliculas usuario: " + lstMoviesUsers);
+            }
+  		
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+		
+		
+	}
+	
 	private static String[] GetNodoList(DBObject objectGeneral, String nodo)
 	{
 		
