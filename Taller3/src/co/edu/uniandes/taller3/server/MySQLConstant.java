@@ -15,7 +15,7 @@ public class MySQLConstant {
 	public static final String DB_URL = "jdbc:mysql://localhost:3306/ml";
 
 	//  Database credentials
-	public static final String USER = "root";
-	public static final String PASS = "123456";
+	public static final String USER = "usml";
+	public static final String PASS = "12345678";
 	
 }
